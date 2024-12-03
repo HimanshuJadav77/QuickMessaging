@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "315702581395",
+    "project_id": "quickmessaging-e9dde",
+    "storage_bucket": "quickmessaging-e9dde.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:315702581395:android:abc2a6268317806baed566",
+        "android_client_info": {
+          "package_name": "com.example.quickmsg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIj0wbuP4HU-ehSkE2zQDWJU6qjoqI1vU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
