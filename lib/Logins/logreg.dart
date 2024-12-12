@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:quickmsg/Logins/register.dart';
 import 'package:quickmsg/Ui/elvb.dart';
-
 import 'login.dart';
 
 class LogReg extends StatefulWidget {
@@ -14,32 +13,36 @@ class LogReg extends StatefulWidget {
 
 class _LogRegState extends State<LogReg> {
   @override
-  Widget build(BuildContext context) {
-    logregcontainer(child, bool lr) {
-      return showBottomSheet(
-        sheetAnimationStyle:
-            AnimationStyle(duration: const Duration(milliseconds: 700)),
-        enableDrag: true,
-        showDragHandle: true,
-        elevation: 20,
-        backgroundColor: Colors.white,
-        context: context,
-        builder: (context) {
-          return SingleChildScrollView(
-            physics: const ScrollPhysics(parent: RangeMaintainingScrollPhysics()),
-            child: SizedBox(
-              height: double.maxFinite,
-              width: double.maxFinite,
-              child: Center(
-                child: child,
-              ),
-            ),
-          );
-        },
-      );
-    }
+  void initState() {
+    super.initState();
+  }
 
-    Widget? child;
+  logregcontainer(child, BuildContext context) {
+    return showBottomSheet(
+      sheetAnimationStyle:
+          AnimationStyle(duration: const Duration(milliseconds: 700)),
+      enableDrag: true,
+      showDragHandle: true,
+      elevation: 20,
+      backgroundColor: Colors.white,
+      context: context,
+      builder: (context) {
+        return SingleChildScrollView(
+          physics: const ScrollPhysics(parent: RangeMaintainingScrollPhysics()),
+          child: SizedBox(
+            height: double.maxFinite,
+            width: double.maxFinite,
+            child: Center(
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         height: double.maxFinite,
@@ -65,11 +68,12 @@ class _LogRegState extends State<LogReg> {
                   child: FaIcon(
                     FontAwesomeIcons.leaf,
                     size: 30,
+                    color: Colors.white,
                   ),
                 ),
                 Text(
                   "QuickMessaging",
-                  style: TextStyle(fontSize: 30),
+                  style: TextStyle(fontSize: 30, color: Colors.white),
                 )
               ],
             ),
@@ -78,7 +82,7 @@ class _LogRegState extends State<LogReg> {
               child: Text(
                 textAlign: TextAlign.center,
                 "QuickMessaging for Communicate with your friend and send updates to friends.",
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
             ),
             const SizedBox(
@@ -93,34 +97,34 @@ class _LogRegState extends State<LogReg> {
                     left: 0,
                     right: 0,
                     bottom: 90,
-                    child: Elvb(
-                      backgroundcolor: Colors.blue.shade700,
-                      foregroundcolor: Colors.white,
-                      onpressed: () {
-                        setState(() {
-                          child = const Register();
-                          logregcontainer(child, true);
-                        });
-                      },
-                      name: "Register",
-                    ),
+                    child: Builder(builder: (context) {
+                      return Elvb(
+                        textsize: 17.0,
+                        backgroundcolor: Colors.blue.shade700,
+                        foregroundcolor: Colors.white,
+                        onpressed: () {
+                          logregcontainer(const Register(), context);
+                        },
+                        name: "Register",
+                      );
+                    }),
                   ),
                   Positioned(
                     top: 410,
                     left: 0,
                     right: 0,
                     bottom: 20,
-                    child: Elvb(
-                      onpressed: () {
-                        setState(() {
-                          child = const Login();
-                          logregcontainer(child, false);
-                        });
-                      },
-                      name: "Login",
-                      foregroundcolor: Colors.blue,
-                      backgroundcolor: Colors.white,
-                    ),
+                    child: Builder(builder: (context) {
+                      return Elvb(
+                        textsize: 17.0,
+                        onpressed: () {
+                          logregcontainer(const Login(), context);
+                        },
+                        name: "Login",
+                        foregroundcolor: Colors.blue,
+                        backgroundcolor: Colors.white,
+                      );
+                    }),
                   ),
                 ],
               ),

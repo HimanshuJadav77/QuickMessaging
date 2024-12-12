@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quickmsg/HomeScreens/home.dart';
+import 'package:quickmsg/Logins/showdialogs.dart';
 import '../Ui/elvb.dart';
 import '../Ui/snackbar.dart';
+import 'logreg.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -16,21 +19,28 @@ class _LoginState extends State<Login> {
   final auth = FirebaseAuth.instance;
   bool pass = false;
   bool cpass = false;
+  bool loggedin = false;
 
-  login(String email, String password) {
+  login(String email, String password) async {
     try {
-      if (email.isNotEmpty || password.isNotEmpty) {
-        auth.signInWithEmailAndPassword(email: email, password: password);
-        if (auth.currentUser!.emailVerified) {
-          showSnackBar(context, "Login Successfully");
-        } else {
-          showSnackBar(context, "Verify Your Email First...");
-        }
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      if (FirebaseAuth.instance.currentUser!.emailVerified) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ));
       } else {
-        showSnackBar(context, "Please Enter All Fields.");
+        showVerification(
+            "Your Email Is Not Verified We Have Been Sent Email Verification Link After Link Verification Login Again.",
+            context);
       }
-    } catch (e) {
-      showSnackBar(context, "Error is $e");
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        loggedin = false;
+      });
+      showSnackBar(context, "$e");
     }
   }
 
@@ -85,7 +95,7 @@ class _LoginState extends State<Login> {
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
               controller: passController,
-              obscureText: pass,
+              obscureText: !pass,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
                   label: const Text("Enter Password"),
@@ -95,7 +105,7 @@ class _LoginState extends State<Login> {
                           pass = !pass;
                         });
                       },
-                      icon: Icon(!pass
+                      icon: Icon(pass
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined)),
                   prefixIcon: const Icon(Icons.password_outlined),
@@ -106,11 +116,39 @@ class _LoginState extends State<Login> {
                       borderRadius: BorderRadius.circular(30))),
             ),
           ),
-          Elvb(
-              onpressed: () {},
-              name: "Login",
-              foregroundcolor: Colors.white,
-              backgroundcolor: Colors.blue),
+          const SizedBox(
+            height: 10,
+          ),
+          loggedin
+              ? const Center(
+                  child: SizedBox(
+                    height: 25,
+                    width: 25,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                    ),
+                  ),
+                )
+              : Elvb(
+                  textsize: 17.0,
+                  heigth: 50.0,
+                  onpressed: () {
+                    setState(() {
+                      loggedin = true;
+                    });
+                    if (emailController.text != "" &&
+                        passController.text != "") {
+                      login(emailController.text, passController.text);
+                      setState(() {
+                        loggedin = true;
+                      });
+                    } else {
+                      showSnackBar(context, "Please Fill All TextBoxes.");
+                    }
+                  },
+                  name: "Login",
+                  foregroundcolor: Colors.white,
+                  backgroundcolor: Colors.blue),
           const SizedBox(
             height: 20,
           ),
@@ -122,9 +160,13 @@ class _LoginState extends State<Login> {
                 style: TextStyle(fontSize: 17),
               ),
               TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LogReg(),
+                      )),
                   child: const Text("Register",
-                      style: TextStyle(fontSize: 20, color: Colors.blue)))
+                      style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],
           )
         ],

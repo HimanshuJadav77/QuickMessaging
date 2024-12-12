@@ -6,20 +6,26 @@ class Elvb extends StatelessWidget {
       required this.onpressed,
       required this.name,
       required this.foregroundcolor,
-      required this.backgroundcolor});
+      required this.backgroundcolor,
+      this.heigth,
+      this.width,
+      this.textsize});
 
   final VoidCallback onpressed;
   final String name;
   final Color foregroundcolor;
   final Color backgroundcolor;
+  final heigth;
+  final width;
+  final textsize;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
-        height: 50,
-        width: double.maxFinite,
+        height: heigth == 0 ? 50 : heigth,
+        width: width == 0 ? double.maxFinite : width,
         child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: backgroundcolor,
@@ -30,7 +36,7 @@ class Elvb extends StatelessWidget {
             onPressed: onpressed,
             child: Text(
               name,
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: textsize),
             )),
       ),
     );

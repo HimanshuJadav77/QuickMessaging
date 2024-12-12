@@ -41,48 +41,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDeYB-yKTasDiUF_iwTV4xAbBcq0xBiTnY',
-    appId: '1:315702581395:web:84f6aec561611cf8aed566',
-    messagingSenderId: '315702581395',
-    projectId: 'quickmessaging-e9dde',
-    authDomain: 'quickmessaging-e9dde.firebaseapp.com',
-    storageBucket: 'quickmessaging-e9dde.firebasestorage.app',
-    measurementId: 'G-FE60FZJJNJ',
+    apiKey: 'AIzaSyCJE-vEPbeXt46Lxiwq7DSVY9xF3lbp2ys',
+    appId: '1:85470283732:web:73efafb6380d1fb76e7841',
+    messagingSenderId: '85470283732',
+    projectId: 'it-material-point-2b732',
+    authDomain: 'it-material-point-2b732.firebaseapp.com',
+    storageBucket: 'it-material-point-2b732.appspot.com',
+    measurementId: 'G-EFNL7K4NFD',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDIj0wbuP4HU-ehSkE2zQDWJU6qjoqI1vU',
-    appId: '1:315702581395:android:abc2a6268317806baed566',
-    messagingSenderId: '315702581395',
-    projectId: 'quickmessaging-e9dde',
-    storageBucket: 'quickmessaging-e9dde.firebasestorage.app',
+    apiKey: 'AIzaSyDU7-ZtGb3AMynKUCeeO9rJGtSZ3bQ-gSE',
+    appId: '1:85470283732:android:cccab8536cb8cdbe6e7841',
+    messagingSenderId: '85470283732',
+    projectId: 'it-material-point-2b732',
+    storageBucket: 'it-material-point-2b732.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDhsYWH9fuyBm8Q1rZ49PEsyx-fHoC0Seg',
-    appId: '1:315702581395:ios:3473140b77b29756aed566',
-    messagingSenderId: '315702581395',
-    projectId: 'quickmessaging-e9dde',
-    storageBucket: 'quickmessaging-e9dde.firebasestorage.app',
+    apiKey: 'AIzaSyCRp4gnvag_0kMq3QCYriN1UqJkANW8FpY',
+    appId: '1:85470283732:ios:cfac1089ca6860b66e7841',
+    messagingSenderId: '85470283732',
+    projectId: 'it-material-point-2b732',
+    storageBucket: 'it-material-point-2b732.appspot.com',
+    androidClientId: '85470283732-bjr456hcaccp6v59foq5lr9ab8hjmpap.apps.googleusercontent.com',
+    iosClientId: '85470283732-paivjb9fhraqusspb3d448av5u4gcukj.apps.googleusercontent.com',
     iosBundleId: 'com.example.quickmsg',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDhsYWH9fuyBm8Q1rZ49PEsyx-fHoC0Seg',
-    appId: '1:315702581395:ios:3473140b77b29756aed566',
-    messagingSenderId: '315702581395',
-    projectId: 'quickmessaging-e9dde',
-    storageBucket: 'quickmessaging-e9dde.firebasestorage.app',
+    apiKey: 'AIzaSyCRp4gnvag_0kMq3QCYriN1UqJkANW8FpY',
+    appId: '1:85470283732:ios:cfac1089ca6860b66e7841',
+    messagingSenderId: '85470283732',
+    projectId: 'it-material-point-2b732',
+    storageBucket: 'it-material-point-2b732.appspot.com',
+    androidClientId: '85470283732-bjr456hcaccp6v59foq5lr9ab8hjmpap.apps.googleusercontent.com',
+    iosClientId: '85470283732-paivjb9fhraqusspb3d448av5u4gcukj.apps.googleusercontent.com',
     iosBundleId: 'com.example.quickmsg',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDeYB-yKTasDiUF_iwTV4xAbBcq0xBiTnY',
-    appId: '1:315702581395:web:8acc08f211752b73aed566',
-    messagingSenderId: '315702581395',
-    projectId: 'quickmessaging-e9dde',
-    authDomain: 'quickmessaging-e9dde.firebaseapp.com',
-    storageBucket: 'quickmessaging-e9dde.firebasestorage.app',
-    measurementId: 'G-SWDW2EXSZL',
+    apiKey: 'AIzaSyCJE-vEPbeXt46Lxiwq7DSVY9xF3lbp2ys',
+    appId: '1:85470283732:web:b6b76accd5ec2b8f6e7841',
+    messagingSenderId: '85470283732',
+    projectId: 'it-material-point-2b732',
+    authDomain: 'it-material-point-2b732.firebaseapp.com',
+    storageBucket: 'it-material-point-2b732.appspot.com',
+    measurementId: 'G-CBWJNZPP41',
   );
+
 }

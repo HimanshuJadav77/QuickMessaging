@@ -1,7 +1,10 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quickmsg/Logins/logreg.dart';
+import 'package:quickmsg/Logins/verification.dart';
 import 'package:quickmsg/Ui/elvb.dart';
 import 'package:quickmsg/Ui/snackbar.dart';
 
@@ -19,28 +22,97 @@ class _RegisterState extends State<Register> {
   final confirmPassController = TextEditingController();
   final auth = FirebaseAuth.instance;
   bool disable = false;
-  bool pass = false;
-  bool cpass = false;
+  bool pass = true;
+  bool cpass = true;
+  bool registered = false;
+  File? pickedImage;
 
-  register(String email, String password) {
+  showImagePicker() {
+    return showDialog(
+      barrierColor: Colors.black45,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          elevation: 20,
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Select Image",
+            style: TextStyle(color: Colors.blue, fontSize: 20),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () async {
+                  try {
+                    final photo = await ImagePicker()
+                        .pickImage(source: ImageSource.camera);
+                    if (photo != null) {
+                      final tempImage = File(photo.path);
+                      setState(() {
+                        pickedImage = tempImage;
+                      });
+                    }
+                  } catch (e) {
+                    showSnackBar(context, "$e");
+                  }
+                  Navigator.pop(context);
+                },
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: Colors.black,
+                ),
+                title: const Text(
+                  "Camera",
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              ListTile(
+                onTap: () async {
+                  try {
+                    final photo = await ImagePicker()
+                        .pickImage(source: ImageSource.gallery);
+                    if (photo != null) {
+                      final tempImage = File(photo.path);
+                      setState(() {
+                        pickedImage = tempImage;
+                      });
+                    }
+                  } catch (e) {
+                    showSnackBar(context, "$e");
+                  }
+                  Navigator.pop(context);
+                },
+                leading: const Icon(Icons.photo_library_outlined,
+                    color: Colors.black),
+                title: const Text("Gallary",
+                    style: TextStyle(color: Colors.black)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  register() async {
     try {
-      if (email.isNotEmpty || password.isNotEmpty) {
-        auth.createUserWithEmailAndPassword(email: email, password: password);
-        showSnackBar(context, "Check Email For Verification");
-        Timer(const Duration(seconds: 2), () {
-          auth.currentUser!.sendEmailVerification();
-        });
-        Timer(const Duration(seconds: 10), () {
-          if (auth.currentUser!.emailVerified) {
-            showSnackBar(context, "Register Successfully");
-          } else {
-            showSnackBar(context, "Verify Your Email First...");
-          }
-        });
-      } else {
-        showSnackBar(context, "Please Enter All Fields.");
-      }
-    } catch (e) {
+      await auth.createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passController.text.trim());
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Verification(
+                pickedImage: pickedImage,
+                user: usernameController.text.trim(),
+                password: passController.text.trim(),
+                email: emailController.text.trim()),
+          ));
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        registered = false;
+      });
       showSnackBar(context, "Error is $e");
     }
   }
@@ -72,9 +144,28 @@ class _RegisterState extends State<Register> {
           const SizedBox(
             height: 70,
           ),
-          const CircleAvatar(
-            //child: Image.asset("assets/images/login.png"),
-            radius: 60,
+          InkWell(
+            onTap: showImagePicker,
+            child: pickedImage != null
+                ? CircleAvatar(
+                    radius: 60,
+                    child: ClipOval(
+                      child: Image.file(
+                        width: 120,
+                        fit: BoxFit.cover,
+                        pickedImage!,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ))
+                : const CircleAvatar(
+                    backgroundColor: Colors.black12,
+                    radius: 60,
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.black,
+                      size: 60,
+                    ),
+                  ),
           ),
           const SizedBox(
             height: 10,
@@ -162,11 +253,59 @@ class _RegisterState extends State<Register> {
                       borderRadius: BorderRadius.circular(30))),
             ),
           ),
-          Elvb(
-              onpressed: () {},
-              name: "Register",
-              foregroundcolor: Colors.white,
-              backgroundcolor: Colors.blue),
+          const SizedBox(
+            height: 20,
+          ),
+          registered
+              ? const Center(
+                  child: SizedBox(
+                    height: 25,
+                    width: 25,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                    ),
+                  ),
+                )
+              : Elvb(
+                  textsize: 17.0,
+                  heigth: 50.0,
+                  onpressed: () {
+                    if (usernameController.text != "" &&
+                        emailController.text != "" &&
+                        passController.text != "" &&
+                        confirmPassController.text != "") {
+                      if (passController.text != confirmPassController.text) {
+                        showSnackBar(context, "Passwords Are Not Matched.");
+                      } else if (passController.text.length < 6 &&
+                          passController.text.length < 6) {
+                        showSnackBar(context, "Password Length Must be 6.");
+                      } else if (pickedImage == null) {
+                        showSnackBar(context, "Please Select Image.");
+                      } else {
+                        setState(() {
+                          registered = true;
+                        });
+                        register();
+                        Timer(
+                          const Duration(seconds: 3),
+                          () {
+                            setState(() {
+                              registered = false;
+                            });
+                          },
+                        );
+                      }
+                    } else {
+                      showSnackBar(context, "Please Fill All Fields.");
+                    }
+
+                    // String content =
+                    //     "A Verification Link Sent To Your Gmail Verify Please.";
+                    // showVerification(content, context, emailController.text.trim());
+                  },
+                  name: "Register",
+                  foregroundcolor: Colors.white,
+                  backgroundcolor: Colors.blue),
           const SizedBox(
             height: 20,
           ),
@@ -174,13 +313,17 @@ class _RegisterState extends State<Register> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                "You have Already Account?",
+                "I have Already Account?",
                 style: TextStyle(fontSize: 17),
               ),
               TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>const LogReg(),
+                      )),
                   child: const Text("Login",
-                      style: TextStyle(fontSize: 20, color: Colors.blue)))
+                      style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],
           )
         ],
