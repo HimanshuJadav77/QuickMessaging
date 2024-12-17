@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quickmsg/HomeScreens/splash.dart';
@@ -26,14 +27,14 @@ class _QuickmsgState extends State<Quickmsg> {
         debugShowCheckedModeBanner: false,
         title: 'QuickMessaging',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
         home: StreamBuilder<User?>(
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (context, snapshot) {
-              return  Scaffold(
-                body:Splash(snapshot: snapshot),
+              return Scaffold(
+                body: Splash(snapshot: snapshot),
               );
             }));
   }

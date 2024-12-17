@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:quickmsg/HomeScreens/chathome.dart';
 import 'package:quickmsg/Logins/logreg.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -86,15 +87,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ]),
         ),
         body: TabBarView(children: [
-          Container(
-            height: 10,
-            color: Colors.black,
-          ),
+          const ChatHome(),
           Container(
             height: 10,
             color: Colors.blue,
           )
         ]),
+        floatingActionButton: FloatingActionButton.extended(
+            label: const Text("Search"),
+            icon: const Icon(Icons.search),
+            splashColor: Colors.white,
+            backgroundColor: Colors.blue.shade300,
+            focusColor: Colors.blue.shade200,
+            onPressed: () {}),
       ),
     );
   }

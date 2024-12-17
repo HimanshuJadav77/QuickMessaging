@@ -15,8 +15,11 @@ class Elvb extends StatelessWidget {
   final String name;
   final Color foregroundcolor;
   final Color backgroundcolor;
+  // ignore: prefer_typing_uninitialized_variables
   final heigth;
+  // ignore: prefer_typing_uninitialized_variables
   final width;
+  // ignore: prefer_typing_uninitialized_variables
   final textsize;
 
   @override

@@ -28,7 +28,7 @@ class Verification extends StatefulWidget {
 
 class _VerificationState extends State<Verification> {
   final _auth = FirebaseAuth.instance;
-  bool Resend = false;
+  bool resend = false;
   Timer? timer;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   bool isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
@@ -75,9 +75,11 @@ class _VerificationState extends State<Verification> {
           "email": widget.email,
           "password": widget.password,
           "userimageurl": imageurl,
+          "userid": user.uid,
         });
         timer!.cancel();
       } on FirebaseException catch (e) {
+        // ignore: use_build_context_synchronously
         showSnackBar(context, "$e");
       }
     }
@@ -108,7 +110,7 @@ class _VerificationState extends State<Verification> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  !Resend
+                  !resend
                       ? Elvb(
                           textsize: 17.0,
                           heigth: 50.0,
@@ -116,13 +118,13 @@ class _VerificationState extends State<Verification> {
                           onpressed: () {
                             _auth.currentUser!.sendEmailVerification();
                             setState(() {
-                              Resend = true;
+                              resend = true;
                             });
                             Timer(
                               const Duration(seconds: 5),
                               () {
                                 setState(() {
-                                  Resend = false;
+                                  resend = false;
                                 });
                               },
                             );

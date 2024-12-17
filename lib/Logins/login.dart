@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/home.dart';
+import 'package:quickmsg/Logins/register.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import '../Ui/elvb.dart';
 import '../Ui/snackbar.dart';
-import 'logreg.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -27,6 +27,7 @@ class _LoginState extends State<Login> {
           .signInWithEmailAndPassword(email: email, password: password);
       if (FirebaseAuth.instance.currentUser!.emailVerified) {
         Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
             context,
             MaterialPageRoute(
               builder: (context) => const HomeScreen(),
@@ -34,12 +35,14 @@ class _LoginState extends State<Login> {
       } else {
         showVerification(
             "Your Email Is Not Verified We Have Been Sent Email Verification Link After Link Verification Login Again.",
+            // ignore: use_build_context_synchronously
             context);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
         loggedin = false;
       });
+      // ignore: use_build_context_synchronously
       showSnackBar(context, "$e");
     }
   }
@@ -160,11 +163,10 @@ class _LoginState extends State<Login> {
                 style: TextStyle(fontSize: 17),
               ),
               TextButton(
-                  onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LogReg(),
-                      )),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logregcontainer(const Register(), context);
+                  },
                   child: const Text("Register",
                       style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],

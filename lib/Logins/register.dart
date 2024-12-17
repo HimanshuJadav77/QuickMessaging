@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:quickmsg/Logins/logreg.dart';
+import 'package:quickmsg/Logins/login.dart';
+import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Logins/verification.dart';
 import 'package:quickmsg/Ui/elvb.dart';
 import 'package:quickmsg/Ui/snackbar.dart';
@@ -54,8 +55,10 @@ class _RegisterState extends State<Register> {
                       });
                     }
                   } catch (e) {
+                    // ignore: use_build_context_synchronously
                     showSnackBar(context, "$e");
                   }
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 },
                 leading: const Icon(
@@ -79,8 +82,10 @@ class _RegisterState extends State<Register> {
                       });
                     }
                   } catch (e) {
+                    // ignore: use_build_context_synchronously
                     showSnackBar(context, "$e");
                   }
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 },
                 leading: const Icon(Icons.photo_library_outlined,
@@ -101,6 +106,7 @@ class _RegisterState extends State<Register> {
           email: emailController.text.trim(),
           password: passController.text.trim());
       Navigator.push(
+          // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(
             builder: (context) => Verification(
@@ -113,6 +119,7 @@ class _RegisterState extends State<Register> {
       setState(() {
         registered = false;
       });
+      // ignore: use_build_context_synchronously
       showSnackBar(context, "Error is $e");
     }
   }
@@ -317,11 +324,10 @@ class _RegisterState extends State<Register> {
                 style: TextStyle(fontSize: 17),
               ),
               TextButton(
-                  onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>const LogReg(),
-                      )),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    logregcontainer(const Login(), context);
+                  },
                   child: const Text("Login",
                       style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],

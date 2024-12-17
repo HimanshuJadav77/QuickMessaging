@@ -8,6 +8,7 @@ import 'home.dart';
 class Splash extends StatefulWidget {
   const Splash({super.key, this.snapshot});
 
+  // ignore: prefer_typing_uninitialized_variables
   final snapshot;
 
   @override
@@ -47,7 +48,7 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Text("Quick Messaging"),
     );
   }
