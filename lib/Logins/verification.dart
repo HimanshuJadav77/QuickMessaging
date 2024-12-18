@@ -76,6 +76,7 @@ class _VerificationState extends State<Verification> {
           "password": widget.password,
           "userimageurl": imageurl,
           "userid": user.uid,
+          "about": ""
         });
         timer!.cancel();
       } on FirebaseException catch (e) {

@@ -1,11 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/Ui/elvb.dart';
 
 logregcontainer(child, BuildContext context) {
   return showBottomSheet(
     sheetAnimationStyle:
-    AnimationStyle(duration: const Duration(milliseconds: 700)),
+        AnimationStyle(duration: const Duration(milliseconds: 700)),
     enableDrag: true,
     showDragHandle: true,
     elevation: 20,
@@ -26,18 +24,19 @@ logregcontainer(child, BuildContext context) {
   );
 }
 
-showVerification(String content, BuildContext context) {
+showCustomDialog(String title, String content, BuildContext context) {
   return showDialog(
     context: context,
     builder: (context) {
-      FirebaseAuth.instance.currentUser!.sendEmailVerification();
       return AlertDialog(
-        title: const Text(
-          "Verification",
-          style: TextStyle(color: Colors.blue, fontSize: 20),
+        title: Text(
+          title,
+          style: TextStyle(
+              color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        content: Text(content),
+        content: Text(content,style: TextStyle(
+            color: Colors.black, fontSize: 15, ),),
         elevation: 10,
         actions: [
           Row(
@@ -45,21 +44,12 @@ showVerification(String content, BuildContext context) {
             children: [
               TextButton(
                   onPressed: () async {
-                    await FirebaseAuth.instance.currentUser!.delete();
+                    Navigator.pop(context);
                   },
                   child: const Text(
-                    "Cancel",
-                    style: TextStyle(color: Colors.blue),
+                    "Ok",
+                    style: TextStyle(color: Colors.blue, fontSize: 18),
                   )),
-              Elvb(
-                  textsize: 15.0,
-                  heigth: 30.0,
-                  onpressed: () {
-                    FirebaseAuth.instance.currentUser!.sendEmailVerification();
-                  },
-                  name: "Resend",
-                  foregroundcolor: Colors.white,
-                  backgroundcolor: Colors.blue)
             ],
           )
         ],

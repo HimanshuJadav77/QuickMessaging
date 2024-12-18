@@ -33,7 +33,7 @@ class _LoginState extends State<Login> {
               builder: (context) => const HomeScreen(),
             ));
       } else {
-        showVerification(
+        showCustomDialog("Login",
             "Your Email Is Not Verified We Have Been Sent Email Verification Link After Link Verification Login Again.",
             // ignore: use_build_context_synchronously
             context);

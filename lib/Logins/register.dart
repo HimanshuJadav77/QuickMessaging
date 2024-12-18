@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,68 +34,86 @@ class _RegisterState extends State<Register> {
       barrierColor: Colors.black45,
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          elevation: 20,
-          backgroundColor: Colors.white,
-          title: const Text(
-            "Select Image",
-            style: TextStyle(color: Colors.blue, fontSize: 20),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                onTap: () async {
-                  try {
-                    final photo = await ImagePicker()
-                        .pickImage(source: ImageSource.camera);
-                    if (photo != null) {
-                      final tempImage = File(photo.path);
-                      setState(() {
-                        pickedImage = tempImage;
-                      });
-                    }
-                  } catch (e) {
-                    // ignore: use_build_context_synchronously
-                    showSnackBar(context, "$e");
-                  }
-                  // ignore: use_build_context_synchronously
-                  Navigator.pop(context);
-                },
-                leading: const Icon(
-                  Icons.camera_alt_outlined,
-                  color: Colors.black,
-                ),
-                title: const Text(
-                  "Camera",
-                  style: TextStyle(color: Colors.black),
-                ),
+        return Stack(
+          children: [
+            AlertDialog(
+              elevation: 20,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: const Text(
+                "Select Image",
+                style: TextStyle(color: Colors.blue, fontSize: 20),
               ),
-              ListTile(
-                onTap: () async {
-                  try {
-                    final photo = await ImagePicker()
-                        .pickImage(source: ImageSource.gallery);
-                    if (photo != null) {
-                      final tempImage = File(photo.path);
-                      setState(() {
-                        pickedImage = tempImage;
-                      });
-                    }
-                  } catch (e) {
-                    // ignore: use_build_context_synchronously
-                    showSnackBar(context, "$e");
-                  }
-                  // ignore: use_build_context_synchronously
-                  Navigator.pop(context);
-                },
-                leading: const Icon(Icons.photo_library_outlined,
-                    color: Colors.black),
-                title: const Text("Gallary",
-                    style: TextStyle(color: Colors.black)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    onTap: () async {
+                      try {
+                        final photo = await ImagePicker()
+                            .pickImage(source: ImageSource.camera);
+                        if (photo != null) {
+                          final tempImage = File(photo.path);
+                          setState(() {
+                            pickedImage = tempImage;
+                          });
+                        }
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        showSnackBar(context, "$e");
+                      }
+                      // ignore: use_build_context_synchronously
+                      Navigator.pop(context);
+                    },
+                    leading: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Colors.black,
+                    ),
+                    title: const Text(
+                      "Camera",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                  ListTile(
+                    onTap: () async {
+                      try {
+                        final photo = await ImagePicker()
+                            .pickImage(source: ImageSource.gallery);
+                        if (photo != null) {
+                          final tempImage = File(photo.path);
+                          setState(() {
+                            pickedImage = tempImage;
+                          });
+                        }
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        showSnackBar(context, "$e");
+                      }
+                      // ignore: use_build_context_synchronously
+                      Navigator.pop(context);
+                    },
+                    leading: const Icon(Icons.photo_library_outlined,
+                        color: Colors.black),
+                    title: const Text("Gallery",
+                        style: TextStyle(color: Colors.black)),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+                top: 1,
+                right: 10,
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.black,
+                      )),
+                )),
+          ],
         );
       },
     );
@@ -121,6 +140,24 @@ class _RegisterState extends State<Register> {
       });
       // ignore: use_build_context_synchronously
       showSnackBar(context, "Error is $e");
+    }
+  }
+
+  Future<bool> checkUsernameExists(String username) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection("Users")
+          .where("username", isEqualTo: username)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("Error checking username: $e");
+      return false;
     }
   }
 
@@ -276,7 +313,7 @@ class _RegisterState extends State<Register> {
               : Elvb(
                   textsize: 17.0,
                   heigth: 50.0,
-                  onpressed: () {
+                  onpressed: () async {
                     if (usernameController.text != "" &&
                         emailController.text != "" &&
                         passController.text != "" &&
@@ -292,9 +329,14 @@ class _RegisterState extends State<Register> {
                         setState(() {
                           registered = true;
                         });
-                        register();
+                        bool isUserExist =
+                            await checkUsernameExists(usernameController.text);
+                        isUserExist
+                            ? showCustomDialog(
+                                "Register", "Username Is Already Exist.", context)
+                            : register();
                         Timer(
-                          const Duration(seconds: 3),
+                          const Duration(seconds: 2),
                           () {
                             setState(() {
                               registered = false;
