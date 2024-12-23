@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -156,7 +157,7 @@ class _RegisterState extends State<Register> {
         return false;
       }
     } catch (e) {
-      print("Error checking username: $e");
+      log("Error checking username: $e");
       return false;
     }
   }
@@ -331,10 +332,12 @@ class _RegisterState extends State<Register> {
                         });
                         bool isUserExist =
                             await checkUsernameExists(usernameController.text);
+
                         isUserExist
-                            ? showCustomDialog(
-                                "Register", "Username Is Already Exist.", context)
+                            ? showCustomDialog("Register",
+                                "Username Is Already Exist.", context)
                             : register();
+
                         Timer(
                           const Duration(seconds: 2),
                           () {

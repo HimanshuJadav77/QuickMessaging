@@ -35,8 +35,13 @@ showCustomDialog(String title, String content, BuildContext context) {
               color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        content: Text(content,style: TextStyle(
-            color: Colors.black, fontSize: 15, ),),
+        content: Text(
+          content,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 15,
+          ),
+        ),
         elevation: 10,
         actions: [
           Row(

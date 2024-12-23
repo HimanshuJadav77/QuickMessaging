@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_typing_uninitialized_variables
 
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../Ui/snackbar.dart';
+import 'followfollowing.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({
@@ -140,7 +142,7 @@ class _MyProfileState extends State<MyProfile> {
         return false;
       }
     } catch (e) {
-      print("Error checking username: $e");
+      log("Error checking username: $e");
       return false;
     }
   }
@@ -159,7 +161,7 @@ class _MyProfileState extends State<MyProfile> {
             .collection("Users")
             .doc(userid)
             .update({"userimageurl": imageurl});
-        showSnackBar(context, "Image Updated.");
+        if (mounted) showSnackBar(context, "Image Updated.");
       } else if (usernameC.text != username && modifyUsername) {
         bool isUsernameExist = await checkUsernameExists(usernameC.text);
         if (!isUsernameExist) {
@@ -167,16 +169,16 @@ class _MyProfileState extends State<MyProfile> {
               .collection("Users")
               .doc(userid)
               .update({"username": usernameC.text});
-          showSnackBar(context, "Username Updated.");
+          if (mounted) showSnackBar(context, "Username Updated.");
         } else {
-          showSnackBar(context, "Username Already Exist.");
+          if (mounted) showSnackBar(context, "Username Already Exist.");
         }
       } else if (aboutC.text != about && modifyAbout) {
         await _firestore
             .collection("Users")
             .doc(userid)
             .update({"about": aboutC.text});
-        showSnackBar(context, "About Updated.");
+        if (mounted) showSnackBar(context, "About Updated.");
       }
 
       setState(() {
@@ -186,7 +188,7 @@ class _MyProfileState extends State<MyProfile> {
         pickedImage = null;
       });
     } on FirebaseException catch (e) {
-      showSnackBar(context, "$e");
+      if (mounted) showSnackBar(context, "$e");
     }
   }
 
@@ -247,7 +249,32 @@ class _MyProfileState extends State<MyProfile> {
                                   ),
                           ],
                         )
-                      : Text(""),
+                      : IconButton(
+                          onPressed: () {
+                            showMenu(
+                              color: Colors.white,
+                              context: context,
+                              position:RelativeRect.fromLTRB(100, 20, 27, 20),  // Adjust position as needed
+                              items: [
+                                PopupMenuItem<String>(
+                                  value: '',
+                                  child: const Text(
+                                    'Privacy'
+                                  ),
+                                  onTap: () {},
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'Option 2',
+                                  child: Text('Camera'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'Option 3',
+                                  child: Text('Settings'),
+                                ),
+                              ],
+                            );
+                          },
+                          icon: Icon(Icons.more_vert_outlined)),
                 ],
                 title: Text(
                   "My Profile",
@@ -264,54 +291,178 @@ class _MyProfileState extends State<MyProfile> {
               ),
               body: Column(
                 children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 60,
-                            child: ClipOval(
-                              child: pickedImage != null
-                                  ? Image.file(
-                                      width: 120,
-                                      fit: BoxFit.cover,
-                                      pickedImage!,
-                                      filterQuality: FilterQuality.high,
-                                    )
-                                  : Image.network(
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return CircularProgressIndicator();
+                  Row(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Stack(
+                            children: [
+                              Card(
+                                elevation: 10,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(60)),
+                                child: CircleAvatar(
+                                  radius: 60,
+                                  child: ClipOval(
+                                    child: pickedImage != null
+                                        ? Image.file(
+                                            width: 120,
+                                            fit: BoxFit.cover,
+                                            pickedImage!,
+                                            filterQuality: FilterQuality.high,
+                                          )
+                                        : Image.network(
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return CircularProgressIndicator();
+                                            },
+                                            width: 120,
+                                            fit: BoxFit.cover,
+                                            imageurl,
+                                            filterQuality: FilterQuality.high,
+                                          ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 85,
+                                right: 2,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.blue.shade400,
+                                  child: IconButton(
+                                      onPressed: () {
+                                        showImagePicker();
                                       },
-                                      width: 120,
-                                      fit: BoxFit.cover,
-                                      imageurl,
-                                      filterQuality: FilterQuality.high,
-                                    ),
-                            ),
+                                      icon: Icon(
+                                        Icons.camera_alt_outlined,
+                                        color: Colors.black,
+                                      )),
+                                ),
+                              )
+                            ],
                           ),
-                          Positioned(
-                            top: 85,
-                            right: 2,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.white60,
-                              child: IconButton(
-                                  onPressed: () {
-                                    showImagePicker();
-                                  },
-                                  icon: Icon(
-                                    Icons.camera_alt_outlined,
-                                    color: Colors.black,
-                                  )),
-                            ),
-                          )
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 40,
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FollowFollowingPage(
+                                  userid: userid,
+                                ),
+                              ));
+                        },
+                        child: SizedBox(
+                          width: 265,
+                          height: 70,
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 40, top: 5),
+                                  child: Text(
+                                    "Follower",
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 30,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 40, top: 5),
+                                  child: Text(
+                                    "Following",
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 195,
+                                top: 25,
+                                child: StreamBuilder<QuerySnapshot>(
+                                    stream: _firestore
+                                        .collection("Users")
+                                        .doc(userid)
+                                        .collection("followers")
+                                        .where("follower", isEqualTo: true)
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                              top: 10, left: 15),
+                                          child: SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 70, top: 5),
+                                        child: Text(
+                                          "${snapshot.data?.docs.length}",
+                                          style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      );
+                                    }),
+                              ),
+                              Positioned(
+                                right: 65,
+                                top: 25,
+                                child: StreamBuilder<QuerySnapshot>(
+                                    stream: _firestore
+                                        .collection("Users")
+                                        .doc(userid)
+                                        .collection("following")
+                                        .where("following", isEqualTo: true)
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                              top: 10, left: 15),
+                                          child: SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 3,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 70, top: 5),
+                                        child: Text(
+                                          "${snapshot.data!.docs.length}",
+                                          style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      );
+                                    }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -355,6 +506,10 @@ class _MyProfileState extends State<MyProfile> {
                     ),
                   ),
                   Padding(
+                    padding: const EdgeInsets.only(left: 65, right: 5),
+                    child: Divider(),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ListTile(
                       onTap: () {},
@@ -372,6 +527,10 @@ class _MyProfileState extends State<MyProfile> {
                         style: TextStyle(fontSize: 18, color: Colors.black),
                       ),
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 65, right: 5),
+                    child: Divider(),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -413,7 +572,11 @@ class _MyProfileState extends State<MyProfile> {
                                 size: 30,
                               )),
                     ),
-                  )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 65, right: 5),
+                    child: Divider(),
+                  ),
                 ],
               ),
             );

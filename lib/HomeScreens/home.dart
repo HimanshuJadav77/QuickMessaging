@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:quickmsg/HomeScreens/Profile/myprofile.dart';
 import 'package:quickmsg/HomeScreens/chathome.dart';
+import 'package:quickmsg/HomeScreens/searchuser.dart';
 import 'package:quickmsg/Logins/logreg.dart';
+import 'package:quickmsg/Ui/elvb.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,25 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey<ScaffoldState> drawerController = GlobalKey<ScaffoldState>();
   final _firestore = FirebaseFirestore.instance;
   final cUserid = FirebaseAuth.instance.currentUser!.uid;
-  String cUserImage = "";
-  String cUserName = "";
-  String cUserEmail = "";
-  String cAbout = "";
+  bool showMultibutton = false;
 
   @override
   void initState() {
     super.initState();
-    getCUserData();
-  }
-
-  getCUserData() async {
-    final cUserData = await _firestore.collection("Users").doc(cUserid).get();
-    setState(() {
-      cUserImage = cUserData["userimageurl"];
-      cUserName = cUserData["username"];
-      cUserEmail = cUserData["email"];
-      cAbout = cUserData["about"];
-    });
   }
 
   @override
@@ -61,44 +49,61 @@ class _HomeScreenState extends State<HomeScreen> {
                     Colors.blueAccent.shade400,
                   ]),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 50,
-                      left: 10,
-                      child: CircleAvatar(
-                        radius: 50,
-                        child: ClipOval(
-                          child: Image.network(
-                            errorBuilder: (context, error, stackTrace) {
-                              return CircularProgressIndicator();
-                            },
-                            width: 120,
-                            fit: BoxFit.cover,
-                            cUserImage,
-                            filterQuality: FilterQuality.high,
+                child: StreamBuilder(
+                    stream:
+                        _firestore.collection("Users").doc(cUserid).snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      final data = snapshot.data!;
+                      final imageurl = data["userimageurl"];
+                      final username = data["username"];
+                      final email = data["email"];
+
+                      return Stack(
+                        children: [
+                          Positioned(
+                            top: 50,
+                            left: 10,
+                            child: CircleAvatar(
+                              radius: 50,
+                              child: ClipOval(
+                                child: Image.network(
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return CircularProgressIndicator();
+                                  },
+                                  width: 120,
+                                  fit: BoxFit.cover,
+                                  imageurl,
+                                  filterQuality: FilterQuality.high,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 80,
-                      left: 120,
-                      child: Text(
-                        cUserName,
-                        style: TextStyle(color: Colors.white, fontSize: 22),
-                      ),
-                    ),
-                    Positioned(
-                      top: 110,
-                      right: 48,
-                      child: Text(
-                        cUserEmail,
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    )
-                  ],
-                ),
+                          Positioned(
+                            top: 80,
+                            left: 120,
+                            child: Text(
+                              username,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 22),
+                            ),
+                          ),
+                          Positioned(
+                            top: 110,
+                            left: 120,
+                            child: Text(
+                              email,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          )
+                        ],
+                      );
+                    }),
               ),
               ListTile(
                 onTap: () {
@@ -154,27 +159,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(color: Colors.black),
                 ),
               ),
-              // ListTile(
-              //   onTap: () {},
-              //   leading: Icon(
-              //     Icons.logout,
-              //     size: 30,
-              //     color: Colors.red,
-              //   ),
-              //   title: Text(
-              //     "Log out",
-              //     style: TextStyle(color: Colors.red),
-              //   ),
-              // )
-              Container(
-                  color: Colors.transparent,
+              SizedBox(
                   width: double.maxFinite,
-                  height: 466,
+                  height: 495,
                   child: Stack(
                     children: [
                       Positioned(
                           right: 10,
-                          bottom: 10,
+                          bottom: 0,
                           child: IconButton(
                             icon: Row(
                               children: [
@@ -193,7 +185,67 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             color: Colors.red,
-                            onPressed: () {},
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text(
+                                      "Logout",
+                                      style: TextStyle(
+                                          color: Colors.blue,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    content: Text(
+                                      "Are You Sure To Logout?",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    elevation: 10,
+                                    actions: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                              onPressed: () async {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text(
+                                                "Cancel",
+                                                style: TextStyle(
+                                                    color: Colors.blue,
+                                                    fontSize: 14),
+                                              )),
+                                          Elvb(
+                                              onpressed: () {
+                                                FirebaseAuth.instance.signOut();
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const LogReg(),
+                                                  ),
+                                                  (Route<dynamic> route) =>
+                                                      false, // This removes all previous routes
+                                                );
+                                              },
+                                              name: "Yes",
+                                              foregroundcolor: Colors.white,
+                                              backgroundcolor: Colors.blue)
+                                        ],
+                                      )
+                                    ],
+                                  );
+                                },
+                              );
+                            },
                           )),
                     ],
                   )),
@@ -277,19 +329,89 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.blue,
           )
         ]),
-        floatingActionButton: FloatingActionButton.extended(
-            label: const Text(
-              "Search",
-              style: TextStyle(color: Colors.white),
-            ),
-            icon: const Icon(
-              Icons.search,
-              color: Colors.white,
-            ),
-            splashColor: Colors.white,
-            backgroundColor: Colors.blue.shade300,
-            focusColor: Colors.blue.shade200,
-            onPressed: () {}),
+        floatingActionButton: showMultibutton
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    height: 140,
+                    width: 140,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: 5,
+                          bottom: 70,
+                          child: FloatingActionButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)),
+                            autofocus: true,
+                            backgroundColor: Colors.blue.shade400,
+                            onPressed: () {
+                              setState(() {
+                                showMultibutton = false;
+                              });
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchUser(),
+                                  ));
+                            },
+                            child: Icon(
+                              Icons.search_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 70,
+                          bottom: 10,
+                          child: FloatingActionButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)),
+                            autofocus: true,
+                            backgroundColor: Colors.blue.shade400,
+                            onPressed: () {
+                              setState(() {
+                                
+                              });
+                            },
+                            child: Icon(
+                              Icons.chat_outlined,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 5,
+                          right: 5,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    showMultibutton = false;
+                                  });
+                                },
+                                icon: Icon(Icons.close)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              )
+            : FloatingActionButton(
+                backgroundColor: Colors.blue.shade400,
+                onPressed: () {
+                  setState(() {
+                    showMultibutton = true;
+                  });
+                },
+                child: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }

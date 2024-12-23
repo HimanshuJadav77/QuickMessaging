@@ -40,6 +40,12 @@ class _ChatScreenState extends State<ChatScreen> {
     connect();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    socket.disconnect();
+  }
+
   void connect() {
     socket = io.io("http://192.168.43.51:5000", <String, dynamic>{
       "transports": ["websocket"],
@@ -53,8 +59,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
       socket.on("message", (msg) {
         chatSaveByUser(msg["message"], "receiver");
-        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
       });
     });
   }
@@ -67,14 +80,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void chatSaveByUser(String message, String usertype) {
     final UserTypeMsg chatting = UserTypeMsg(message, usertype);
-
-    setState(() {
-      chats.add(chatting);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-            duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+    if (mounted) {
+      setState(() {
+        chats.add(chatting);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut);
+        });
       });
-    });
+    }
   }
 
   @override

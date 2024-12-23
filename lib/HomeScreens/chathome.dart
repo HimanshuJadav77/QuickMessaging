@@ -24,15 +24,15 @@ class _ChatHomeState extends State<ChatHome> {
             final List<DocumentSnapshot> users =
                 streamSnapshot.data!.docs.toList();
             final currentUserid = FirebaseAuth.instance.currentUser!.uid;
-            final usersList = users.where((user) {
+            final userList = users.where((user) {
               return user["userid"] != currentUserid;
             }).toList();
 
             return Scaffold(
               body: ListView.builder(
-                itemCount: usersList.length,
+                itemCount: userList.length,
                 itemBuilder: (context, index) {
-                  final DocumentSnapshot userData = usersList[index];
+                  final DocumentSnapshot userData = userList[index];
                   return Column(
                     children: [
                       InkWell(
@@ -50,7 +50,6 @@ class _ChatHomeState extends State<ChatHome> {
                           child: CustomCard(
                             username: userData["username"],
                             imageurl: userData["userimageurl"],
-                            userid: userData["userid"],
                           )),
                     ],
                   );
