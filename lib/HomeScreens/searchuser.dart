@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import '../Ui/customcard.dart';
 
 class SearchUser extends StatefulWidget {
@@ -20,6 +21,11 @@ class _SearchUserState extends State<SearchUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.arrow_back_ios)),
         title: const Text(
           'Search Users',
           style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
@@ -87,25 +93,117 @@ class _SearchUserState extends State<SearchUser> {
                     itemCount: filteredUsers.length,
                     itemBuilder: (context, index) {
                       final DocumentSnapshot userData = filteredUsers[index];
-
+                      final _inkwell = GlobalKey();
                       return InkWell(
+                        key: _inkwell,
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SearchUserProfile(
-                                username: userData["username"],
-                                email: userData["email"],
-                                about: userData["about"],
-                                imageurl: userData["userimageurl"],
-                                userid: userData["userid"],
+                          final RenderBox renderbox = _inkwell.currentContext!
+                              .findRenderObject() as RenderBox;
+                          final position = renderbox.localToGlobal(Offset.zero);
+                          showMenu(
+                            color: Colors.white,
+                            elevation: 10,
+                            shadowColor: Colors.black54,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            context: context,
+                            position: RelativeRect.fromLTRB(
+                                position.dx + 200,
+                                position.dy + 30,
+                                position.dx + 400,
+                                position.dy + 100),
+                            items: [
+                              PopupMenuItem<String>(
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.message_outlined,
+                                      size: 20,
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    const Text('Message'),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatScreen(
+                                        username: userData["username"],
+                                        email: userData["email"],
+                                        about: userData["about"],
+                                        imageurl: userData["userimageurl"],
+                                        userid: userData["userid"],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ),
+                              PopupMenuItem<String>(
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.account_circle_outlined,
+                                      size: 20,
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    const Text('Profile'),
+                                  ],
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SearchUserProfile(
+                                        username: userData["username"],
+                                        email: userData["email"],
+                                        about: userData["about"],
+                                        imageurl: userData["userimageurl"],
+                                        userid: userData["userid"],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           );
+
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => SearchUserProfile(
+                          //       username: userData["username"],
+                          //       email: userData["email"],
+                          //       about: userData["about"],
+                          //       imageurl: userData["userimageurl"],
+                          //       userid: userData["userid"],
+                          //     ),
+                          //   ),
+                          // );
                         },
                         child: CustomCard(
                           username: userData["username"],
                           imageurl: userData["userimageurl"],
+                          color: Colors.white, trailing: Text(""),
+                          // trailing: IconButton(
+                          //     onPressed: () async {
+                          //       await _firestore
+                          //           .collection("Users")
+                          //           .doc(currentUserId)
+                          //           .collection("chats")
+                          //           .doc(userData["userid"])
+                          //           .set({"chat": true});
+                          //
+                          //       showCustomDialog(
+                          //           "User",
+                          //           "${userData["username"]} is added to your chat.",
+                          //           context);
+                          //     },
+                          //     icon: Icon(Icons.add)),
                         ),
                       );
                     },

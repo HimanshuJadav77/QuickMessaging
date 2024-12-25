@@ -32,6 +32,11 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back_ios)),
           bottom: TabBar(
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.black,

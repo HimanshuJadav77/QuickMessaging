@@ -91,6 +91,11 @@ class _VerificationState extends State<Verification> {
       ? const HomeScreen()
       : Scaffold(
           appBar: AppBar(
+            leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.arrow_back_ios)),
             title: const Text(
               "Verification",
               style: TextStyle(fontSize: 25, color: Colors.blue),

@@ -109,6 +109,10 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
               onPressed: () {
                 showMenu(
                   color: Colors.white,
+                  elevation: 10,
+                  shadowColor: Colors.black54,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                   context: context,
                   position: RelativeRect.fromLTRB(100, 20, 27, 20),
                   // Adjust position as needed
@@ -120,10 +124,6 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                         style: TextStyle(color: Colors.red),
                       ),
                       onTap: () {},
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Option 2',
-                      child: Text('Camera'),
                     ),
                     const PopupMenuItem<String>(
                       value: 'Option 3',
@@ -299,32 +299,45 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                   child: Row(
                     children: [
                       SizedBox(
-                          width: 325,
+                          width: 310,
                           child: Divider(
                             color: Colors.black54,
                           )),
                       Padding(
                         padding: const EdgeInsets.only(left: 10),
-                        child: FloatingActionButton(
-                          elevation: 10,
-                          splashColor: Colors.white24,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(40)),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
+                        child: SizedBox(
+                          height: 70,
+                          width: 70,
+                          child: FloatingActionButton(
+                            elevation: 10,
+                            splashColor: Colors.white24,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(40)),
+                            onPressed: () async {
+                              await _firestore
+                                  .collection("Users")
+                                  .doc(currentUserId)
+                                  .collection("chats")
+                                  .doc(widget.userid)
+                                  .set({"chat": true});
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
                                       imageurl: widget.imageurl,
                                       username: widget.username,
-                                      userid: widget.userid),
-                                ));
-                          },
-                          backgroundColor: Colors.blue.shade400,
-                          child: Icon(
-                            Icons.message_outlined,
-                            color: Colors.white,
-                            size: 30,
+                                      userid: widget.userid,
+                                      about: widget.about,
+                                      email: widget.email,
+                                    ),
+                                  ));
+                            },
+                            backgroundColor: Colors.blue.shade400,
+                            child: Icon(
+                              Icons.message_outlined,
+                              color: Colors.white,
+                              size: 30,
+                            ),
                           ),
                         ),
                       )

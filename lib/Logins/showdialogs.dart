@@ -62,3 +62,49 @@ showCustomDialog(String title, String content, BuildContext context) {
     },
   );
 }
+
+showMessageBox(String title, String content, BuildContext context,
+    VoidCallback onPressed) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(
+          title,
+          style: TextStyle(
+              color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        content: Text(
+          content,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 15,
+          ),
+        ),
+        elevation: 10,
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.blue, fontSize: 18),
+                  )),
+              TextButton(
+                  onPressed: onPressed,
+                  child: const Text(
+                    "Yes",
+                    style: TextStyle(color: Colors.blue, fontSize: 20),
+                  )),
+            ],
+          )
+        ],
+      );
+    },
+  );
+}

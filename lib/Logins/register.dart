@@ -125,6 +125,7 @@ class _RegisterState extends State<Register> {
       await auth.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passController.text.trim());
+      if (mounted) Navigator.pop(context);
       Navigator.push(
           // ignore: use_build_context_synchronously
           context,
@@ -350,10 +351,6 @@ class _RegisterState extends State<Register> {
                     } else {
                       showSnackBar(context, "Please Fill All Fields.");
                     }
-
-                    // String content =
-                    //     "A Verification Link Sent To Your Gmail Verify Please.";
-                    // showVerification(content, context, emailController.text.trim());
                   },
                   name: "Register",
                   foregroundcolor: Colors.white,

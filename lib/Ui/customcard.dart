@@ -6,6 +6,8 @@ class CustomCard extends StatelessWidget {
     required this.username,
     required this.imageurl,
     this.about,
+    required this.color,
+    required this.trailing,
   });
 
   // ignore: prefer_typing_uninitialized_variables
@@ -13,8 +15,11 @@ class CustomCard extends StatelessWidget {
 
   // ignore: prefer_typing_uninitialized_variables
   final imageurl;
+
   // ignore: prefer_typing_uninitialized_variables
   final about;
+  final Color color;
+  final Widget trailing;
 
   // ignore: prefer_typing_uninitialized_variables
 
@@ -22,9 +27,9 @@ class CustomCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(),
-      color: Colors.white,
+      color: color,
       child: ListTile(
-        trailing: const Text(""),
+        trailing: trailing,
         title: Text(username),
         subtitle: const Text(""),
         leading: InkWell(
