@@ -5,7 +5,6 @@ import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:quickmsg/Ui/receivecard.dart';
 import 'package:quickmsg/Ui/sendcard.dart';
 import 'package:quickmsg/Ui/usertypemsg.dart';
-import 'package:quickmsg/socketService/socketservice.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class ChatScreen extends StatefulWidget {
@@ -47,62 +46,63 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // connect();
+    connect();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    socket.disconnect();
+  }
 
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  //   socket.disconnect();
-  // }
+  void connect() {
+    socket = io.io("http://192.168.43.51:5000", <String, dynamic>{
+      "transports": ["websocket"],
+      "autoConnect": false,
+    });
+    socket.connect();
+    socket.emit("usersid", userid);
+    socket.onConnect((data) {
+      // ignore: avoid_print
+      print("Connected");
 
-  // void connect() {
-  //   socket = io.io("http://192.168.43.51:5000", <String, dynamic>{
-  //     "transports": ["websocket"],
-  //     "autoConnect": false,
-  //   });
-  //   socket.connect();
-  //   socket.emit("usersid", userid);
-  //   socket.onConnect((data) {
-  //     // ignore: avoid_print
-  //     print("Connected");
-  //
-  //     socket.on("message", (msg) {
-  //       chatSaveByUser(msg["message"], "receiver");
-  //       WidgetsBinding.instance.addPostFrameCallback((_) {
-  //         if (_scrollController.hasClients) {
-  //           _scrollController.animateTo(
-  //             _scrollController.position.maxScrollExtent,
-  //             duration: Duration(milliseconds: 300),
-  //             curve: Curves.easeInOut,
-  //           );
-  //         }
-  //       });
-  //     });
-  //   });
-  // }
+      socket.on("message", (msg) {
+        if (msg["sender"] ==  widget.userid) {
+          chatSaveByUser(msg["message"], "receiver");
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          });
+        }
+      });
+    });
+  }
 
-  // void sendMessage(String message, sender, receiver) {
-  //   socket.emit("message",
-  //       {"message": message, "sender": sender, "receiver": receiver});
-  //   chatSaveByUser(message, "sender");
-  // }
-  //
-  // void chatSaveByUser(String message, String usertype) {
-  //   final UserTypeMsg chatting = UserTypeMsg(message, usertype);
-  //   if (mounted) {
-  //     setState(() {
-  //       chats.add(chatting);
-  //       WidgetsBinding.instance.addPostFrameCallback((_) {
-  //         _scrollController.animateTo(
-  //             _scrollController.position.maxScrollExtent,
-  //             duration: Duration(milliseconds: 300),
-  //             curve: Curves.easeInOut);
-  //       });
-  //     });
-  //   }
-  // }
+  void sendMessage(String message, sender, receiver) {
+    socket.emit("message",
+        {"message": message, "sender": sender, "receiver": receiver});
+    chatSaveByUser(message, "sender");
+  }
+
+  void chatSaveByUser(String message, String usertype) {
+    final UserTypeMsg chatting = UserTypeMsg(message, usertype);
+    if (mounted) {
+      setState(() {
+        chats.add(chatting);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut);
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,8 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () {
                     setState(() {
                       if (sendmsgC.text.isNotEmpty) {
-                        SocketService()
-                            .sendMessage(sendmsgC.text, userid, widget.userid);
+                        sendMessage(sendmsgC.text, userid, widget.userid);
                         sendmsgC.clear();
                       }
                     });

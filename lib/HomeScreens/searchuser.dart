@@ -93,11 +93,11 @@ class _SearchUserState extends State<SearchUser> {
                     itemCount: filteredUsers.length,
                     itemBuilder: (context, index) {
                       final DocumentSnapshot userData = filteredUsers[index];
-                      final _inkwell = GlobalKey();
+                      final inkwell = GlobalKey();
                       return InkWell(
-                        key: _inkwell,
+                        key: inkwell,
                         onTap: () {
-                          final RenderBox renderbox = _inkwell.currentContext!
+                          final RenderBox renderbox = inkwell.currentContext!
                               .findRenderObject() as RenderBox;
                           final position = renderbox.localToGlobal(Offset.zero);
                           showMenu(
