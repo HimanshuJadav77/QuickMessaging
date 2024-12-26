@@ -8,6 +8,7 @@ class CustomCard extends StatelessWidget {
     this.about,
     required this.color,
     required this.trailing,
+    this.subtitle,
   });
 
   // ignore: prefer_typing_uninitialized_variables
@@ -20,6 +21,7 @@ class CustomCard extends StatelessWidget {
   final about;
   final Color color;
   final Widget trailing;
+  final subtitle;
 
   // ignore: prefer_typing_uninitialized_variables
 
@@ -31,7 +33,7 @@ class CustomCard extends StatelessWidget {
       child: ListTile(
         trailing: trailing,
         title: Text(username),
-        subtitle: const Text(""),
+        subtitle: Text(subtitle),
         leading: InkWell(
             child: CircleAvatar(
                 radius: 30,

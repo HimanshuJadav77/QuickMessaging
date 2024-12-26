@@ -5,6 +5,7 @@ import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:quickmsg/Ui/receivecard.dart';
 import 'package:quickmsg/Ui/sendcard.dart';
 import 'package:quickmsg/Ui/usertypemsg.dart';
+import 'package:quickmsg/socketService/socketservice.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class ChatScreen extends StatefulWidget {
@@ -41,52 +42,43 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final userid = FirebaseAuth.instance.currentUser!.uid;
   List<UserTypeMsg> chats = [];
+
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    connect();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    socket.disconnect();
-  }
-
-  void connect() {
-    socket = io.io("http://192.168.43.51:5000", <String, dynamic>{
-      "transports": ["websocket"],
-      "autoConnect": false,
-    });
-    socket.connect();
-    socket.emit("usersid", userid);
-    socket.onConnect((data) {
-      // ignore: avoid_print
-      print("Connected");
-
-      socket.on("message", (msg) {
-        if (msg["sender"] ==  widget.userid) {
-          chatSaveByUser(msg["message"], "receiver");
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_scrollController.hasClients) {
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            }
-          });
+    socket = SocketService().socket!;
+    socket.on(
+      "message",
+      (message) {
+        if (message != null) {
+          if (message["sender"] == widget.userid) {
+            setState(() {
+              chatSaveByUser(message["message"], "receiver");
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_scrollController.hasClients) {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              });
+            });
+          }
         }
-      });
-    });
+      },
+    );
   }
 
   void sendMessage(String message, sender, receiver) {
-    socket.emit("message",
-        {"message": message, "sender": sender, "receiver": receiver});
-    chatSaveByUser(message, "sender");
+    if (sendmsgC.text.isNotEmpty) {
+      SocketService().sendMessage(message, sender, receiver);
+      setState(() {
+        chatSaveByUser(message, "sender");
+      });
+    }
   }
 
   void chatSaveByUser(String message, String usertype) {
