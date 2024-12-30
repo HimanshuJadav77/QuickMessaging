@@ -8,7 +8,7 @@ class CustomCard extends StatelessWidget {
     this.about,
     required this.color,
     required this.trailing,
-    this.subtitle,
+    required this.subtitle,
   });
 
   // ignore: prefer_typing_uninitialized_variables
@@ -21,7 +21,7 @@ class CustomCard extends StatelessWidget {
   final about;
   final Color color;
   final Widget trailing;
-  final subtitle;
+  final Text subtitle;
 
   // ignore: prefer_typing_uninitialized_variables
 
@@ -30,21 +30,29 @@ class CustomCard extends StatelessWidget {
     return Card(
       shape: RoundedRectangleBorder(),
       color: color,
-      child: ListTile(
-        trailing: trailing,
-        title: Text(username),
-        subtitle: Text(subtitle),
-        leading: InkWell(
-            child: CircleAvatar(
-                radius: 30,
-                child: ClipOval(
-                  child: Image.network(
-                    width: 56,
-                    fit: BoxFit.cover,
-                    imageurl,
-                    filterQuality: FilterQuality.high,
-                  ),
-                ))),
+      child: Padding(
+        padding: subtitle.data!.isEmpty
+            ? const EdgeInsets.only(top: 8.0,bottom: 8.0)
+            : EdgeInsets.zero,
+        child: ListTile(
+          trailing: trailing,
+          title: Text(
+            username,
+            style: TextStyle(fontSize: 18),
+          ),
+          subtitle: subtitle.data!.isNotEmpty ? subtitle : null,
+          leading: InkWell(
+              child: CircleAvatar(
+                  radius: 30,
+                  child: ClipOval(
+                    child: Image.network(
+                      width: 56,
+                      fit: BoxFit.cover,
+                      imageurl,
+                      filterQuality: FilterQuality.high,
+                    ),
+                  ))),
+        ),
       ),
     );
   }

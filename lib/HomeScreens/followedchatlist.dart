@@ -71,7 +71,7 @@ class _FollowedChatListState extends State<FollowedChatList> {
                             ));
                       },
                       child: CustomCard(
-                        subtitle: "",
+                        subtitle: Text(""),
                           color: Colors.white,
                           username: userData["username"],
                           imageurl: userData["userimageurl"], trailing: Text(""),),

@@ -93,13 +93,13 @@ showMessageBox(String title, String content, BuildContext context,
                   },
                   child: const Text(
                     "Cancel",
-                    style: TextStyle(color: Colors.blue, fontSize: 18),
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
                   )),
               TextButton(
                   onPressed: onPressed,
                   child: const Text(
                     "Yes",
-                    style: TextStyle(color: Colors.blue, fontSize: 20),
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
                   )),
             ],
           )

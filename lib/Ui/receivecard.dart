@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Receivecard extends StatelessWidget {
-  const Receivecard({super.key, this.message});
+  const Receivecard({super.key, this.message, this.time});
 
   // ignore: prefer_typing_uninitialized_variables
   final message;
-
+  final time;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class Receivecard extends StatelessWidget {
           child: Card(
             elevation: 5,
             shape: RoundedRectangleBorder(
-              side: BorderSide(color: Colors.black12),
+                side: BorderSide(color: Colors.black12),
                 borderRadius: BorderRadius.only(
                     topRight: Radius.circular(30),
                     topLeft: Radius.circular(0),
@@ -29,10 +29,19 @@ class Receivecard extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: 15, right: 60, top: 5, bottom: 10),
-                  child: Text(message,style: TextStyle(fontSize: 17,color: Colors.black),),
+                      left: 15, right: 50, top: 5, bottom: 10),
+                  child: Text(
+                    message,
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
                 ),
-                Positioned(bottom: 2, right: 15, child: Text("10:00",style: TextStyle(fontSize: 12),))
+                Positioned(
+                    bottom: 2,
+                    right: 15,
+                    child: Text(
+                      time,
+                      style: TextStyle(fontSize: 10),
+                    ))
               ],
             ),
           ),

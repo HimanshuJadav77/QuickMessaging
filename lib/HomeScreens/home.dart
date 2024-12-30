@@ -8,7 +8,6 @@ import 'package:quickmsg/HomeScreens/followedchatlist.dart';
 import 'package:quickmsg/HomeScreens/searchuser.dart';
 import 'package:quickmsg/Logins/logreg.dart';
 import 'package:quickmsg/Ui/elvb.dart';
-import 'package:quickmsg/socketService/socketservice.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,7 +26,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    SocketService().connect();
+   // SocketService().connect();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // if (!mounted) {
+    //   SocketService().closeSocket();
+    // }
   }
 
   @override

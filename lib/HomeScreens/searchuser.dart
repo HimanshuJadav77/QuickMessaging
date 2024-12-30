@@ -186,7 +186,7 @@ class _SearchUserState extends State<SearchUser> {
                           // );
                         },
                         child: CustomCard(
-                          subtitle: "",
+                          subtitle: Text(""),
                           username: userData["username"],
                           imageurl: userData["userimageurl"],
                           color: Colors.white, trailing: Text(""),

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/customcard.dart';
-import 'package:quickmsg/socketService/socketservice.dart';
 
 class ChatHome extends StatefulWidget {
   const ChatHome({super.key});
@@ -28,13 +27,13 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    SocketService().onMessageReceived(
-      (data) {
-        setState(() {
-          _users[data["sender"]] = data["message"];
-        });
-      },
-    );
+    // SocketService().onMessageReceived(
+    //   (data) {
+    //     setState(() {
+    //       _users[data["sender"]] = data["message"];
+    //     });
+    //   },
+    // );
   }
 
   deleteChat(selectedUserList) async {
@@ -142,8 +141,8 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                           builder: (context, snapshot) {
                             if (snapshot.hasData && snapshot.data != null) {
                               final userData = snapshot.data!;
-                              final messagepreView =
-                                  _users[userData["userid"]].toString();
+                              final preMessage = _users[userData["userid"]];
+
                               return Column(
                                 children: [
                                   InkWell(
@@ -180,16 +179,9 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                       child: Stack(
                                         children: [
                                           CustomCard(
-                                            // subtitle: _users[userData["userid"]]
-                                            //             .toString() ==
-                                            //         ""
-                                            //     ? "No Message"
-                                            //     : _users[userData["userid"]]
-                                            //         .toString(),
-                                            subtitle:
-                                                messagepreView.isEmpty == true
-                                                    ? ""
-                                                    : messagepreView,
+                                            subtitle: Text(preMessage != null
+                                                ? preMessage.toString()
+                                                : ""),
                                             trailing: Text(""),
                                             username: userData["username"],
                                             imageurl: userData["userimageurl"],

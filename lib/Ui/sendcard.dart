@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Sendcard extends StatelessWidget {
-  const Sendcard({super.key, this.message});
+  const Sendcard({super.key, this.message, this.time});
 
   // ignore: prefer_typing_uninitialized_variables
   final message;
-
+  final time;
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -28,18 +28,18 @@ class Sendcard extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: 15, right: 60, top: 5, bottom: 10),
+                      left: 15, right: 50, top: 5, bottom: 15),
                   child: Text(
                     message,
-                    style: TextStyle(fontSize: 17, color: Colors.white),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
                 Positioned(
                     bottom: 2,
                     right: 15,
                     child: Text(
-                      "10:00",
-                      style: TextStyle(fontSize: 12, color: Colors.white),
+                      time,
+                      style: TextStyle(fontSize: 10, color: Colors.white),
                     ))
               ],
             ),

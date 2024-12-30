@@ -1,12 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:quickmsg/Ui/receivecard.dart';
 import 'package:quickmsg/Ui/sendcard.dart';
-import 'package:quickmsg/Ui/usertypemsg.dart';
-import 'package:quickmsg/socketService/socketservice.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen(
@@ -38,61 +37,60 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final sendmsgC = TextEditingController();
-  late io.Socket socket;
-
+  final firestore = FirebaseFirestore.instance.collection("Users");
   final userid = FirebaseAuth.instance.currentUser!.uid;
-  List<UserTypeMsg> chats = [];
 
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    socket = SocketService().socket!;
-    socket.on(
-      "message",
-      (message) {
-        if (message != null) {
-          if (message["sender"] == widget.userid) {
-            setState(() {
-              chatSaveByUser(message["message"], "receiver");
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              });
-            });
-          }
-        }
-      },
-    );
   }
 
-  void sendMessage(String message, sender, receiver) {
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
+
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.linear,
+        );
+      }
+    });
+  }
+
+  void sendMessage(String message, sender, receiver) async {
     if (sendmsgC.text.isNotEmpty) {
-      SocketService().sendMessage(message, sender, receiver);
-      setState(() {
-        chatSaveByUser(message, "sender");
+      // SocketService().sendMessage(message, sender, receiver);
+      await firestore
+          .doc(userid)
+          .collection("save_chat")
+          .doc(receiver)
+          .collection("messages")
+          .add({
+        "sender": userid,
+        "receiver": receiver,
+        "message": message,
+        "time": DateTime.now().toLocal()
       });
-    }
-  }
-
-  void chatSaveByUser(String message, String usertype) {
-    final UserTypeMsg chatting = UserTypeMsg(message, usertype);
-    if (mounted) {
-      setState(() {
-        chats.add(chatting);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
-        });
+      await firestore
+          .doc(receiver)
+          .collection("save_chat")
+          .doc(userid)
+          .collection("messages")
+          .add({
+        "sender": userid,
+        "receiver": receiver,
+        "message": message,
+        "time": DateTime.now().toLocal()
       });
+      scrollToBottom();
     }
   }
 
@@ -159,34 +157,55 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              physics: ScrollPhysics(parent: PageScrollPhysics()),
-              shrinkWrap: true,
-              itemCount: chats.length + 1,
-              itemBuilder: (context, index) {
-                if (index == chats.length) {
-                  return Container(
-                    height: 20,
+            child: StreamBuilder(
+                stream: firestore
+                    .doc(userid)
+                    .collection("save_chat")
+                    .doc(widget.userid)
+                    .collection("messages")
+                    .orderBy("time")
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: Text("No Messages"),
+                    );
+                  }
+                  final messageList = snapshot.data!.docs.toList();
+                  scrollToBottom();
+                  return ListView.builder(
+                    controller: _scrollController,
+                    physics: ScrollPhysics(parent: PageScrollPhysics()),
+                    shrinkWrap: true,
+                    itemCount: messageList.length,
+                    itemBuilder: (context, index) {
+                      final messageData = messageList[index];
+                      final txtMessage = messageData["message"];
+                      final senderId = messageData["sender"];
+                      final timestamp = messageData["time"];
+                      final formatedTime =
+                          DateFormat("hh:mm a").format(timestamp.toDate());
+
+                      if (senderId == userid) {
+                        return Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Sendcard(
+                            time: formatedTime,
+                            message: txtMessage,
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Receivecard(
+                            time: formatedTime,
+                            message: txtMessage,
+                          ),
+                        );
+                      }
+                    },
                   );
-                }
-                if (chats[index].usertype == "sender") {
-                  return Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: Sendcard(
-                      message: chats[index].message,
-                    ),
-                  );
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: Receivecard(
-                      message: chats[index].message,
-                    ),
-                  );
-                }
-              },
-            ),
+                }),
           ),
           Container(
             height: 70,
