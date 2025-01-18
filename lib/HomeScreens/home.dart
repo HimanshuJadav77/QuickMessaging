@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:quickmsg/HomeScreens/Profile/myprofile.dart';
 import 'package:quickmsg/HomeScreens/chathome.dart';
 import 'package:quickmsg/HomeScreens/followedchatlist.dart';
@@ -16,7 +17,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool index = false;
   GlobalKey<ScaffoldState> drawerController = GlobalKey<ScaffoldState>();
   final _firestore = FirebaseFirestore.instance;
@@ -26,15 +27,57 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-   // SocketService().connect();
+    requestPermissions();
+    onlineState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // App is in the background, set the user status to offline
+      FirebaseFirestore.instance
+          .collection("Users")
+          .doc(currentUserId)
+          .update({"online": false});
+    } else if (state == AppLifecycleState.resumed) {
+      // App is in the foreground, set the user status to online
+      onlineState();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    // if (!mounted) {
-    //   SocketService().closeSocket();
-    // }
+    FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .update({"online": false});
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  onlineState() {
+    FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .update({"online": true});
+  }
+
+  requestPermissions() async {
+    await Permission.camera.request();
+    await Permission.storage.request();
+    await Permission.videos.request();
+    await Permission.microphone.request();
+    if (await Permission.camera.isDenied ||
+        await Permission.storage.isDenied ||
+        await Permission.videos.isDenied ||
+        await Permission.microphone.isDenied) {
+      await Permission.camera.isGranted;
+      await Permission.storage.isGranted;
+      await Permission.videos.isGranted;
+      await Permission.microphone.isGranted;
+    }
   }
 
   @override
@@ -45,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
           key: drawerController,
           drawer: Drawer(
-            width: 300,
+            width: MediaQuery.of(context).size.width - 130,
             child: Column(
               children: [
                 Container(
@@ -172,97 +215,78 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(color: Colors.black),
                   ),
                 ),
-                SizedBox(
-                    width: double.maxFinite,
-                    height: 472,
-                    child: Stack(
-                      children: [
-                        Positioned(
-                            right: 10,
-                            bottom: 0,
-                            child: IconButton(
-                              icon: Row(
-                                children: [
-                                  Icon(
-                                    Icons.logout_outlined,
-                                    size: 30,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8.0),
-                                    child: Text(
-                                      "Log Out",
+                ListTile(
+                  onTap: () {
+                    FirebaseFirestore.instance
+                        .collection("Users")
+                        .doc(currentUserId)
+                        .update({"online": false});
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text(
+                            "Logout",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          content: Text(
+                            "Are You Sure To Logout?",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                            ),
+                          ),
+                          elevation: 10,
+                          actions: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text(
+                                      "Cancel",
                                       style: TextStyle(
-                                          color: Colors.red, fontSize: 16),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              color: Colors.red,
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text(
-                                        "Logout",
-                                        style: TextStyle(
-                                            color: Colors.blue,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(30)),
-                                      content: Text(
-                                        "Are You Sure To Logout?",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
+                                          color: Colors.blue, fontSize: 14),
+                                    )),
+                                Elvb(
+                                    onpressed: () {
+                                      FirebaseAuth.instance.signOut();
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const LogReg(),
                                         ),
-                                      ),
-                                      elevation: 10,
-                                      actions: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            TextButton(
-                                                onPressed: () async {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text(
-                                                  "Cancel",
-                                                  style: TextStyle(
-                                                      color: Colors.blue,
-                                                      fontSize: 14),
-                                                )),
-                                            Elvb(
-                                                onpressed: () {
-                                                  FirebaseAuth.instance
-                                                      .signOut();
-                                                  Navigator.pushAndRemoveUntil(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          const LogReg(),
-                                                    ),
-                                                    (Route<dynamic> route) =>
-                                                        false, // This removes all previous routes
-                                                  );
-                                                },
-                                                name: "Yes",
-                                                foregroundcolor: Colors.white,
-                                                backgroundcolor: Colors.blue)
-                                          ],
-                                        )
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            )),
-                      ],
-                    )),
+                                        (Route<dynamic> route) =>
+                                            false, // This removes all previous routes
+                                      );
+                                    },
+                                    name: "Yes",
+                                    foregroundcolor: Colors.white,
+                                    backgroundcolor: Colors.blue)
+                              ],
+                            )
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  leading: Icon(
+                    color: Colors.red,
+                    Icons.logout_outlined,
+                    size: 30,
+                  ),
+                  title: Text(
+                    "Log Out",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
               ],
             ),
           ),

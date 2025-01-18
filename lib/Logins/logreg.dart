@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:quickmsg/Logins/register.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/elvb.dart';
@@ -16,16 +17,31 @@ class _LogRegState extends State<LogReg> {
   @override
   void initState() {
     super.initState();
+    requestPermissions();
   }
 
-
+  requestPermissions() async {
+    await Permission.camera.request();
+    await Permission.storage.request();
+    await Permission.videos.request();
+    await Permission.microphone.request();
+    if (await Permission.camera.isDenied ||
+        await Permission.storage.isDenied ||
+        await Permission.videos.isDenied ||
+        await Permission.microphone.isDenied) {
+      await Permission.camera.isGranted;
+      await Permission.storage.isGranted;
+      await Permission.videos.isGranted;
+      await Permission.microphone.isGranted;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        height: double.maxFinite,
-        width: double.infinity,
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
         decoration: const BoxDecoration(
             gradient: LinearGradient(tileMode: TileMode.decal, colors: [
               Colors.deepPurple,
@@ -34,7 +50,6 @@ class _LogRegState extends State<LogReg> {
             ]),
             color: Colors.blue),
         child: ListView(
-          //mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(
               height: 100,

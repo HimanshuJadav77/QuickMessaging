@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import '../Ui/customcard.dart';
+import 'chathome.dart';
 
 class SearchUser extends StatefulWidget {
   const SearchUser({super.key});
@@ -14,8 +15,33 @@ class SearchUser extends StatefulWidget {
 
 class _SearchUserState extends State<SearchUser> {
   final searchC = TextEditingController();
+  bool blocked = false;
   final CollectionReference usersList =
       FirebaseFirestore.instance.collection("Users");
+
+  blockUser(blockUserid) {
+    if (blocked) {
+      FirebaseFirestore.instance
+          .collection("block")
+          .doc(currentUserId)
+          .collection("blockedid")
+          .doc(blockUserid)
+          .set({"blocked": false});
+      setState(() {
+        blocked = false;
+      });
+    } else {
+      FirebaseFirestore.instance
+          .collection("block")
+          .doc(currentUserId)
+          .collection("blockedid")
+          .doc(blockUserid)
+          .set({"blocked": true});
+      setState(() {
+        blocked = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +81,7 @@ class _SearchUserState extends State<SearchUser> {
             ),
           ),
           const Divider(),
+
           Expanded(
             child: StreamBuilder(
               stream: usersList.snapshots(), // Get all users
@@ -78,7 +105,7 @@ class _SearchUserState extends State<SearchUser> {
                   }
 
                   final filteredUsers = users.where((user) {
-                    final username = user["username"].toLowerCase();
+                    final username = user["username"].toString().toLowerCase().replaceAll(RegExp(r'\s+'), '');
                     final searchQuery = searchC.text.toLowerCase();
 
                     return username.contains(searchQuery) &&
@@ -93,120 +120,179 @@ class _SearchUserState extends State<SearchUser> {
                     itemCount: filteredUsers.length,
                     itemBuilder: (context, index) {
                       final DocumentSnapshot userData = filteredUsers[index];
-                      final inkwell = GlobalKey();
-                      return InkWell(
-                        key: inkwell,
-                        onTap: () {
-                          final RenderBox renderbox = inkwell.currentContext!
-                              .findRenderObject() as RenderBox;
-                          final position = renderbox.localToGlobal(Offset.zero);
-                          showMenu(
-                            color: Colors.white,
-                            elevation: 10,
-                            shadowColor: Colors.black54,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20)),
-                            context: context,
-                            position: RelativeRect.fromLTRB(
-                                position.dx + 200,
-                                position.dy + 30,
-                                position.dx + 400,
-                                position.dy + 100),
-                            items: [
-                              PopupMenuItem<String>(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.message_outlined,
-                                      size: 20,
-                                    ),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    const Text('Message'),
-                                  ],
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                        username: userData["username"],
-                                        email: userData["email"],
-                                        about: userData["about"],
-                                        imageurl: userData["userimageurl"],
-                                        userid: userData["userid"],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              PopupMenuItem<String>(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.account_circle_outlined,
-                                      size: 20,
-                                    ),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    const Text('Profile'),
-                                  ],
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SearchUserProfile(
-                                        username: userData["username"],
-                                        email: userData["email"],
-                                        about: userData["about"],
-                                        imageurl: userData["userimageurl"],
-                                        userid: userData["userid"],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
 
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => SearchUserProfile(
-                          //       username: userData["username"],
-                          //       email: userData["email"],
-                          //       about: userData["about"],
-                          //       imageurl: userData["userimageurl"],
-                          //       userid: userData["userid"],
-                          //     ),
-                          //   ),
-                          // );
-                        },
-                        child: CustomCard(
-                          subtitle: Text(""),
-                          username: userData["username"],
-                          imageurl: userData["userimageurl"],
-                          color: Colors.white, trailing: Text(""),
-                          // trailing: IconButton(
-                          //     onPressed: () async {
-                          //       await _firestore
-                          //           .collection("Users")
-                          //           .doc(currentUserId)
-                          //           .collection("chats")
-                          //           .doc(userData["userid"])
-                          //           .set({"chat": true});
-                          //
-                          //       showCustomDialog(
-                          //           "User",
-                          //           "${userData["username"]} is added to your chat.",
-                          //           context);
-                          //     },
-                          //     icon: Icon(Icons.add)),
-                        ),
-                      );
+                      final inkwell = GlobalKey();
+                      return StreamBuilder(
+                          stream: FirebaseFirestore.instance
+                              .collection("block")
+                              .doc(currentUserId)
+                              .collection("blockedid")
+                              .doc(userData["userid"])
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {}
+                            final blockdata = snapshot.data?.data();
+                            final block = blockdata?["blocked"];
+                            return StreamBuilder(
+                                stream: FirebaseFirestore.instance
+                                    .collection("block")
+                                    .doc(userData["userid"])
+                                    .collection("blockedid")
+                                    .doc(currentUserId)
+                                    .snapshots(),
+                                builder: (context, bsnapshot) {
+                                  if (bsnapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center();
+                                  }
+                                  if (bsnapshot.data
+                                          ?.data()?["blocked"]
+                                          .toString() ==
+                                      "true") {
+                                    return Center();
+                                  }
+                                  if (bsnapshot.data?.data() == null ||
+                                      bsnapshot.data
+                                              ?.data()?["blocked"]
+                                              .toString() ==
+                                          "false") {
+                                    return InkWell(
+                                      key: inkwell,
+                                      onTap: () {
+                                        final RenderBox renderbox = inkwell
+                                            .currentContext!
+                                            .findRenderObject() as RenderBox;
+                                        final position = renderbox
+                                            .localToGlobal(Offset.zero);
+                                        showMenu(
+                                          color: Colors.white,
+                                          elevation: 10,
+                                          shadowColor: Colors.black54,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          context: context,
+                                          position: RelativeRect.fromLTRB(
+                                              position.dx + 200,
+                                              position.dy + 30,
+                                              position.dx + 400,
+                                              position.dy + 100),
+                                          items: [
+                                            PopupMenuItem<String>(
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.message_outlined,
+                                                    size: 20,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  const Text('Message'),
+                                                ],
+                                              ),
+                                              onTap: () async {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ChatScreen(
+                                                      username:
+                                                          userData["username"],
+                                                      email: userData["email"],
+                                                      about: userData["about"],
+                                                      imageurl: userData[
+                                                          "userimageurl"],
+                                                      userid:
+                                                          userData["userid"],
+                                                    ),
+                                                  ),
+                                                );
+
+                                                await FirebaseFirestore.instance
+                                                    .collection("Users")
+                                                    .doc(currentUserId)
+                                                    .collection("chats")
+                                                    .doc(userData["userid"])
+                                                    .set({
+                                                  "chat": true,
+                                                  "time": FieldValue
+                                                      .serverTimestamp()
+                                                });
+                                              },
+                                            ),
+                                            PopupMenuItem<String>(
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .account_circle_outlined,
+                                                    size: 20,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  const Text('Profile'),
+                                                ],
+                                              ),
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        SearchUserProfile(
+                                                      username:
+                                                          userData["username"],
+                                                      email: userData["email"],
+                                                      about: userData["about"],
+                                                      imageurl: userData[
+                                                          "userimageurl"],
+                                                      userid:
+                                                          userData["userid"],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            PopupMenuItem<String>(
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.block,
+                                                    size: 20,
+                                                    color: Colors.red,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    block == true
+                                                        ? "Unblock"
+                                                        : 'Block',
+                                                    style: TextStyle(
+                                                        color: Colors.red),
+                                                  ),
+                                                ],
+                                              ),
+                                              onTap: () {
+                                                blockUser(userData["userid"]);
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                      child: CustomCard(
+                                        subtitle: Text(""),
+                                        username: userData["username"],
+                                        imageurl: userData["userimageurl"],
+                                        color: Colors.white,
+                                        trailing: Text(""),
+                                      ),
+                                    );
+                                  }
+                                  return Center();
+                                });
+                          });
                     },
                   );
                 }

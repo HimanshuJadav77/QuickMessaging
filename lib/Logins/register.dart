@@ -30,96 +30,6 @@ class _RegisterState extends State<Register> {
   bool registered = false;
   File? pickedImage;
 
-  showImagePicker() {
-    return showDialog(
-      barrierColor: Colors.black45,
-      context: context,
-      builder: (BuildContext context) {
-        return Stack(
-          children: [
-            AlertDialog(
-              elevation: 20,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              title: const Text(
-                "Select Image",
-                style: TextStyle(color: Colors.blue, fontSize: 20),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    onTap: () async {
-                      try {
-                        final photo = await ImagePicker()
-                            .pickImage(source: ImageSource.camera);
-                        if (photo != null) {
-                          final tempImage = File(photo.path);
-                          setState(() {
-                            pickedImage = tempImage;
-                          });
-                        }
-                      } catch (e) {
-                        // ignore: use_build_context_synchronously
-                        showSnackBar(context, "$e");
-                      }
-                      // ignore: use_build_context_synchronously
-                      Navigator.pop(context);
-                    },
-                    leading: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.black,
-                    ),
-                    title: const Text(
-                      "Camera",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  ListTile(
-                    onTap: () async {
-                      try {
-                        final photo = await ImagePicker()
-                            .pickImage(source: ImageSource.gallery);
-                        if (photo != null) {
-                          final tempImage = File(photo.path);
-                          setState(() {
-                            pickedImage = tempImage;
-                          });
-                        }
-                      } catch (e) {
-                        // ignore: use_build_context_synchronously
-                        showSnackBar(context, "$e");
-                      }
-                      // ignore: use_build_context_synchronously
-                      Navigator.pop(context);
-                    },
-                    leading: const Icon(Icons.photo_library_outlined,
-                        color: Colors.black),
-                    title: const Text("Gallery",
-                        style: TextStyle(color: Colors.black)),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-                top: 1,
-                right: 10,
-                child: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.black,
-                      )),
-                )),
-          ],
-        );
-      },
-    );
-  }
-
   register() async {
     try {
       await auth.createUserWithEmailAndPassword(
@@ -191,7 +101,41 @@ class _RegisterState extends State<Register> {
             height: 70,
           ),
           InkWell(
-            onTap: showImagePicker,
+            onTap: () {
+              showPickerDialog("Image", () async {
+                try {
+                  final photo =
+                      await ImagePicker().pickImage(source: ImageSource.camera);
+                  if (photo != null) {
+                    final tempImage = File(photo.path);
+                    setState(() {
+                      pickedImage = tempImage;
+                    });
+                  }
+                } catch (e) {
+                  // ignore: use_build_context_synchronously
+                  showSnackBar(context, "$e");
+                }
+                // ignore: use_build_context_synchronously
+                Navigator.pop(context);
+              }, () async {
+                try {
+                  final photo = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+                  if (photo != null) {
+                    final tempImage = File(photo.path);
+                    setState(() {
+                      pickedImage = tempImage;
+                    });
+                  }
+                } catch (e) {
+                  // ignore: use_build_context_synchronously
+                  showSnackBar(context, "$e");
+                }
+                // ignore: use_build_context_synchronously
+                Navigator.pop(context);
+              }, context);
+            },
             child: pickedImage != null
                 ? CircleAvatar(
                     radius: 60,
@@ -334,10 +278,12 @@ class _RegisterState extends State<Register> {
                         bool isUserExist =
                             await checkUsernameExists(usernameController.text);
 
-                        isUserExist
-                            ? showCustomDialog("Register",
-                                "Username Is Already Exist.", context)
-                            : register();
+                        if (context.mounted) {
+                          isUserExist
+                              ? showCustomDialog("Register",
+                                  "Username Is Already Exist.", context)
+                              : register();
+                        }
 
                         Timer(
                           const Duration(seconds: 2),

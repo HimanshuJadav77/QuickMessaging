@@ -314,12 +314,6 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(40)),
                             onPressed: () async {
-                              await _firestore
-                                  .collection("Users")
-                                  .doc(currentUserId)
-                                  .collection("chats")
-                                  .doc(widget.userid)
-                                  .set({"chat": true});
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -331,6 +325,15 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                       email: widget.email,
                                     ),
                                   ));
+                              await _firestore
+                                  .collection("Users")
+                                  .doc(currentUserId)
+                                  .collection("chats")
+                                  .doc(widget.userid)
+                                  .set({
+                                "chat": true,
+                                "time": FieldValue.serverTimestamp()
+                              });
                             },
                             backgroundColor: Colors.blue.shade400,
                             child: Icon(

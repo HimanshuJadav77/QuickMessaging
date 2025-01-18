@@ -27,13 +27,6 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // SocketService().onMessageReceived(
-    //   (data) {
-    //     setState(() {
-    //       _users[data["sender"]] = data["message"];
-    //     });
-    //   },
-    // );
   }
 
   deleteChat(selectedUserList) async {
@@ -60,6 +53,11 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
               child: Text("No Users Available For Chat."),
             );
           }
+          if (streamSnapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
           final List<DocumentSnapshot> users =
               streamSnapshot.data!.docs.toList();
@@ -83,7 +81,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                 AnimatedContainer(
                   curve: Curves.easeInOut,
                   height: selectedStates.contains(true) ? 50 : 0,
-                  duration: Duration(milliseconds: 500),
+                  duration: Duration(milliseconds: 200),
                   child: AppBar(
                     leading: IconButton(
                         tooltip: "Cancel",

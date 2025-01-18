@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quickmsg/Logins/showdialogs.dart';
 
 import '../../Ui/snackbar.dart';
 import 'followfollowing.dart';
@@ -38,96 +39,6 @@ class _MyProfileState extends State<MyProfile> {
   var imageurl;
   var email;
   var about;
-
-  showImagePicker() {
-    return showDialog(
-      barrierColor: Colors.black45,
-      context: context,
-      builder: (BuildContext context) {
-        return Stack(
-          children: [
-            AlertDialog(
-              elevation: 20,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              title: const Text(
-                "Select Image",
-                style: TextStyle(color: Colors.blue, fontSize: 20),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    onTap: () async {
-                      try {
-                        final photo = await ImagePicker()
-                            .pickImage(source: ImageSource.camera);
-                        if (photo != null) {
-                          final tempImage = File(photo.path);
-                          setState(() {
-                            pickedImage = tempImage;
-                          });
-                        }
-                      } catch (e) {
-                        // ignore: use_build_context_synchronously
-                        showSnackBar(context, "$e");
-                      }
-                      // ignore: use_build_context_synchronously
-                      Navigator.pop(context);
-                    },
-                    leading: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.black,
-                    ),
-                    title: const Text(
-                      "Camera",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  ListTile(
-                    onTap: () async {
-                      try {
-                        final photo = await ImagePicker()
-                            .pickImage(source: ImageSource.gallery);
-                        if (photo != null) {
-                          final tempImage = File(photo.path);
-                          setState(() {
-                            pickedImage = tempImage;
-                          });
-                        }
-                      } catch (e) {
-                        // ignore: use_build_context_synchronously
-                        showSnackBar(context, "$e");
-                      }
-                      // ignore: use_build_context_synchronously
-                      Navigator.pop(context);
-                    },
-                    leading: const Icon(Icons.photo_library_outlined,
-                        color: Colors.black),
-                    title: const Text("Gallery",
-                        style: TextStyle(color: Colors.black)),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-                top: 1,
-                right: 10,
-                child: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.black,
-                      )),
-                )),
-          ],
-        );
-      },
-    );
-  }
 
   Future<bool> checkUsernameExists(String username) async {
     try {
@@ -254,13 +165,12 @@ class _MyProfileState extends State<MyProfile> {
                             showMenu(
                               color: Colors.white,
                               context: context,
-                              position:RelativeRect.fromLTRB(100, 20, 27, 20),  // Adjust position as needed
+                              position: RelativeRect.fromLTRB(100, 20, 27, 20),
+                              // Adjust position as needed
                               items: [
                                 PopupMenuItem<String>(
                                   value: '',
-                                  child: const Text(
-                                    'Privacy'
-                                  ),
+                                  child: const Text('Privacy'),
                                   onTap: () {},
                                 ),
                                 const PopupMenuItem<String>(
@@ -332,7 +242,44 @@ class _MyProfileState extends State<MyProfile> {
                                   backgroundColor: Colors.blue.shade400,
                                   child: IconButton(
                                       onPressed: () {
-                                        showImagePicker();
+                                        showPickerDialog("Image", () async {
+                                          try {
+                                            final photo = await ImagePicker()
+                                                .pickImage(
+                                                    source: ImageSource.camera);
+                                            if (photo != null) {
+                                              final tempImage =
+                                                  File(photo.path);
+                                              setState(() {
+                                                pickedImage = tempImage;
+                                              });
+                                            }
+                                          } catch (e) {
+                                            // ignore: use_build_context_synchronously
+                                            showSnackBar(context, "$e");
+                                          }
+                                          // ignore: use_build_context_synchronously
+                                          Navigator.pop(context);
+                                        }, () async {
+                                          try {
+                                            final photo = await ImagePicker()
+                                                .pickImage(
+                                                    source:
+                                                        ImageSource.gallery);
+                                            if (photo != null) {
+                                              final tempImage =
+                                                  File(photo.path);
+                                              setState(() {
+                                                pickedImage = tempImage;
+                                              });
+                                            }
+                                          } catch (e) {
+                                            // ignore: use_build_context_synchronously
+                                            showSnackBar(context, "$e");
+                                          }
+                                          // ignore: use_build_context_synchronously
+                                          Navigator.pop(context);
+                                        }, context);
                                       },
                                       icon: Icon(
                                         Icons.camera_alt_outlined,

@@ -5,6 +5,7 @@ class Receivecard extends StatelessWidget {
 
   // ignore: prefer_typing_uninitialized_variables
   final message;
+  // ignore: prefer_typing_uninitialized_variables
   final time;
 
   @override
@@ -18,7 +19,7 @@ class Receivecard extends StatelessWidget {
           child: Card(
             elevation: 5,
             shape: RoundedRectangleBorder(
-                side: BorderSide(color: Colors.black12),
+                side: BorderSide(color: Colors.black26),
                 borderRadius: BorderRadius.only(
                     topRight: Radius.circular(30),
                     topLeft: Radius.circular(0),
@@ -29,7 +30,7 @@ class Receivecard extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: 15, right: 50, top: 5, bottom: 10),
+                      left: 15, right: 70, top: 5, bottom: 5),
                   child: Text(
                     message,
                     style: TextStyle(fontSize: 16, color: Colors.black),
