@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quickmsg/HomeScreens/Profile/settings.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 
 import '../../Ui/snackbar.dart';
@@ -32,9 +33,7 @@ class _MyProfileState extends State<MyProfile> {
   final _firestore = FirebaseFirestore.instance;
   final userid = FirebaseAuth.instance.currentUser!.uid;
   bool loading = false;
-  final userData = FirebaseFirestore.instance
-      .collection("Users")
-      .doc(FirebaseAuth.instance.currentUser!.uid);
+  final userData = FirebaseFirestore.instance.collection("Users").doc(FirebaseAuth.instance.currentUser!.uid);
   var username;
   var imageurl;
   var email;
@@ -42,10 +41,7 @@ class _MyProfileState extends State<MyProfile> {
 
   Future<bool> checkUsernameExists(String username) async {
     try {
-      final querySnapshot = await _firestore
-          .collection("Users")
-          .where("username", isEqualTo: username)
-          .get();
+      final querySnapshot = await _firestore.collection("Users").where("username", isEqualTo: username).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         return true;
@@ -64,31 +60,21 @@ class _MyProfileState extends State<MyProfile> {
         loading = true;
       });
       if (pickedImage != null) {
-        UploadTask uploadTask =
-            _storage.ref("UsersImage").child(userid).putFile(pickedImage!);
+        UploadTask uploadTask = _storage.ref("UsersImage").child(userid).putFile(pickedImage!);
         TaskSnapshot taskSnapshot = await uploadTask;
         final imageurl = await taskSnapshot.ref.getDownloadURL();
-        await _firestore
-            .collection("Users")
-            .doc(userid)
-            .update({"userimageurl": imageurl});
+        await _firestore.collection("Users").doc(userid).update({"userimageurl": imageurl});
         if (mounted) showSnackBar(context, "Image Updated.");
       } else if (usernameC.text != username && modifyUsername) {
         bool isUsernameExist = await checkUsernameExists(usernameC.text);
         if (!isUsernameExist) {
-          await _firestore
-              .collection("Users")
-              .doc(userid)
-              .update({"username": usernameC.text});
+          await _firestore.collection("Users").doc(userid).update({"username": usernameC.text});
           if (mounted) showSnackBar(context, "Username Updated.");
         } else {
           if (mounted) showSnackBar(context, "Username Already Exist.");
         }
       } else if (aboutC.text != about && modifyAbout) {
-        await _firestore
-            .collection("Users")
-            .doc(userid)
-            .update({"about": aboutC.text});
+        await _firestore.collection("Users").doc(userid).update({"about": aboutC.text});
         if (mounted) showSnackBar(context, "About Updated.");
       }
 
@@ -105,9 +91,14 @@ class _MyProfileState extends State<MyProfile> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
+    return StreamBuilder(
         stream: userData.snapshots(),
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           if (snapshot.hasData && snapshot.data != null) {
             final data = snapshot.data?.data() as Map<String, dynamic>;
             username = data["username"].toString();
@@ -118,80 +109,68 @@ class _MyProfileState extends State<MyProfile> {
             return Scaffold(
               appBar: AppBar(
                 actions: [
-                  pickedImage != null ||
-                          modifyAbout == true ||
-                          modifyUsername == true
-                      ? Row(
-                          children: [
-                            TextButton(
+                  if (pickedImage != null || modifyAbout == true || modifyUsername == true)
+                    Row(
+                      children: [
+                        TextButton(
+                            onPressed: () {
+                              setState(() {
+                                pickedImage = null;
+                                modifyAbout = false;
+                                modifyUsername = false;
+                              });
+                            },
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(fontSize: 20, color: Colors.red),
+                            )),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15, bottom: 15),
+                          child: VerticalDivider(),
+                        ),
+                        !loading
+                            ? TextButton(
                                 onPressed: () {
-                                  setState(() {
-                                    pickedImage = null;
-                                    modifyAbout = false;
-                                    modifyUsername = false;
-                                  });
+                                  updateProfile();
                                 },
                                 child: Text(
-                                  "Cancel",
-                                  style: TextStyle(
-                                      fontSize: 20, color: Colors.red),
-                                )),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 15, bottom: 15),
-                              child: VerticalDivider(),
-                            ),
-                            !loading
-                                ? TextButton(
-                                    onPressed: () {
-                                      updateProfile();
-                                    },
-                                    child: Text(
-                                      "Update",
-                                      style: TextStyle(
-                                          fontSize: 20, color: Colors.blue),
-                                    ))
-                                : Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: SizedBox(
-                                        height: 30,
-                                        width: 30,
-                                        child: CircularProgressIndicator()),
-                                  ),
-                          ],
-                        )
-                      : IconButton(
-                          onPressed: () {
-                            showMenu(
-                              color: Colors.white,
-                              context: context,
-                              position: RelativeRect.fromLTRB(100, 20, 27, 20),
-                              // Adjust position as needed
-                              items: [
-                                PopupMenuItem<String>(
-                                  value: '',
-                                  child: const Text('Privacy'),
-                                  onTap: () {},
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'Option 2',
-                                  child: Text('Camera'),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'Option 3',
-                                  child: Text('Settings'),
-                                ),
-                              ],
-                            );
-                          },
-                          icon: Icon(Icons.more_vert_outlined)),
+                                  "Update",
+                                  style: TextStyle(fontSize: 20, color: Colors.blue),
+                                ))
+                            : Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: SizedBox(height: 30, width: 30, child: CircularProgressIndicator()),
+                              ),
+                      ],
+                    )
+                  else
+                    IconButton(
+                        onPressed: () {
+                          showMenu(
+                            color: Colors.white,
+                            context: context,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            position: RelativeRect.fromLTRB(100, 20, 27, 20),
+                            // Adjust position as needed
+                            items: [
+                              PopupMenuItem<String>(
+                                child: const Text('Privacy'),
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SettingsPage(),
+                                      ));
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                        icon: Icon(Icons.more_vert_outlined)),
                 ],
                 title: Text(
                   "My Profile",
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.blue, fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 leading: IconButton(
                     onPressed: () {
@@ -199,7 +178,7 @@ class _MyProfileState extends State<MyProfile> {
                     },
                     icon: Icon(Icons.arrow_back_ios_new)),
               ),
-              body: Column(
+              body: ListView(
                 children: [
                   Row(
                     children: [
@@ -210,8 +189,7 @@ class _MyProfileState extends State<MyProfile> {
                             children: [
                               Card(
                                 elevation: 10,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(60)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
                                 child: CircleAvatar(
                                   radius: 60,
                                   child: ClipOval(
@@ -223,8 +201,7 @@ class _MyProfileState extends State<MyProfile> {
                                             filterQuality: FilterQuality.high,
                                           )
                                         : Image.network(
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
+                                            errorBuilder: (context, error, stackTrace) {
                                               return CircularProgressIndicator();
                                             },
                                             width: 120,
@@ -244,12 +221,9 @@ class _MyProfileState extends State<MyProfile> {
                                       onPressed: () {
                                         showPickerDialog("Image", () async {
                                           try {
-                                            final photo = await ImagePicker()
-                                                .pickImage(
-                                                    source: ImageSource.camera);
+                                            final photo = await ImagePicker().pickImage(source: ImageSource.camera);
                                             if (photo != null) {
-                                              final tempImage =
-                                                  File(photo.path);
+                                              final tempImage = File(photo.path);
                                               setState(() {
                                                 pickedImage = tempImage;
                                               });
@@ -262,13 +236,9 @@ class _MyProfileState extends State<MyProfile> {
                                           Navigator.pop(context);
                                         }, () async {
                                           try {
-                                            final photo = await ImagePicker()
-                                                .pickImage(
-                                                    source:
-                                                        ImageSource.gallery);
+                                            final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
                                             if (photo != null) {
-                                              final tempImage =
-                                                  File(photo.path);
+                                              final tempImage = File(photo.path);
                                               setState(() {
                                                 pickedImage = tempImage;
                                               });
@@ -308,26 +278,20 @@ class _MyProfileState extends State<MyProfile> {
                             children: [
                               Positioned(
                                 child: Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 40, top: 5),
+                                  padding: const EdgeInsets.only(left: 40, top: 5),
                                   child: Text(
                                     "Follower",
-                                    style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w400),
+                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                                   ),
                                 ),
                               ),
                               Positioned(
                                 right: 30,
                                 child: Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 40, top: 5),
+                                  padding: const EdgeInsets.only(left: 40, top: 5),
                                   child: Text(
                                     "Following",
-                                    style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w400),
+                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                                   ),
                                 ),
                               ),
@@ -342,11 +306,9 @@ class _MyProfileState extends State<MyProfile> {
                                         .where("follower", isEqualTo: true)
                                         .snapshots(),
                                     builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
                                         return Padding(
-                                          padding: EdgeInsets.only(
-                                              top: 10, left: 15),
+                                          padding: EdgeInsets.only(top: 10, left: 15),
                                           child: SizedBox(
                                             height: 20,
                                             width: 20,
@@ -357,13 +319,10 @@ class _MyProfileState extends State<MyProfile> {
                                         );
                                       }
                                       return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 70, top: 5),
+                                        padding: const EdgeInsets.only(left: 70, top: 5),
                                         child: Text(
                                           "${snapshot.data?.docs.length}",
-                                          style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w400),
+                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                                         ),
                                       );
                                     }),
@@ -379,11 +338,9 @@ class _MyProfileState extends State<MyProfile> {
                                         .where("following", isEqualTo: true)
                                         .snapshots(),
                                     builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
                                         return Padding(
-                                          padding: EdgeInsets.only(
-                                              top: 10, left: 15),
+                                          padding: EdgeInsets.only(top: 10, left: 15),
                                           child: SizedBox(
                                             height: 20,
                                             width: 20,
@@ -394,13 +351,10 @@ class _MyProfileState extends State<MyProfile> {
                                         );
                                       }
                                       return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 70, top: 5),
+                                        padding: const EdgeInsets.only(left: 70, top: 5),
                                         child: Text(
                                           "${snapshot.data!.docs.length}",
-                                          style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w400),
+                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                                         ),
                                       );
                                     }),
@@ -411,118 +365,90 @@ class _MyProfileState extends State<MyProfile> {
                       )
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      onTap: () {},
-                      leading: Icon(
-                        color: Colors.blue,
-                        Icons.person_2_outlined,
-                        size: 30,
-                      ),
-                      title: Text(
-                        "Username",
-                        style: TextStyle(fontSize: 15, color: Colors.blue),
-                      ),
-                      subtitle: modifyUsername
-                          ? TextFormField(
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.black),
-                              autofocus: true,
-                              controller: usernameC,
-                            )
-                          : Text(
-                              username,
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.black),
-                            ),
-                      trailing: modifyUsername
-                          ? null
-                          : IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  modifyUsername = true;
-                                  usernameC.text = username;
-                                });
-                              },
-                              icon: Icon(
-                                color: Colors.blue,
-                                Icons.mode_edit_outline_outlined,
-                                size: 30,
-                              )),
+                  ListTile(
+                    leading: Icon(
+                      color: Colors.blue,
+                      Icons.person_2_outlined,
+                      size: 30,
+                    ),
+                    title: Text(
+                      "Username",
+                      style: TextStyle(fontSize: 15, color: Colors.blue),
+                    ),
+                    subtitle: modifyUsername
+                        ? TextFormField(
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                            autofocus: true,
+                            controller: usernameC,
+                          )
+                        : Text(
+                            username,
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                          ),
+                    trailing: modifyUsername
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              setState(() {
+                                modifyUsername = true;
+                                usernameC.text = username;
+                              });
+                            },
+                            icon: Icon(
+                              color: Colors.blue,
+                              Icons.mode_edit_outline_outlined,
+                              size: 30,
+                            )),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      color: Colors.blue,
+                      Icons.email_outlined,
+                      size: 30,
+                    ),
+                    title: Text(
+                      "Email",
+                      style: TextStyle(fontSize: 15, color: Colors.blue),
+                    ),
+                    subtitle: Text(
+                      email,
+                      style: TextStyle(fontSize: 18, color: Colors.black),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 65, right: 5),
-                    child: Divider(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      onTap: () {},
-                      leading: Icon(
-                        color: Colors.blue,
-                        Icons.email_outlined,
-                        size: 30,
-                      ),
-                      title: Text(
-                        "Email",
-                        style: TextStyle(fontSize: 15, color: Colors.blue),
-                      ),
-                      subtitle: Text(
-                        email,
-                        style: TextStyle(fontSize: 18, color: Colors.black),
-                      ),
+                  ListTile(
+                    leading: Icon(
+                      color: Colors.blue,
+                      Icons.info_outline_rounded,
+                      size: 30,
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 65, right: 5),
-                    child: Divider(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      onTap: () {},
-                      leading: Icon(
-                        color: Colors.blue,
-                        Icons.info_outline_rounded,
-                        size: 30,
-                      ),
-                      title: Text(
-                        "About",
-                        style: TextStyle(fontSize: 15, color: Colors.blue),
-                      ),
-                      subtitle: modifyAbout
-                          ? TextFormField(
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.black),
-                              autofocus: true,
-                              controller: aboutC,
-                            )
-                          : Text(
-                              about,
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.black),
-                            ),
-                      trailing: modifyAbout
-                          ? null
-                          : IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  modifyAbout = true;
-                                  aboutC.text = about;
-                                });
-                              },
-                              icon: Icon(
-                                color: Colors.blue,
-                                Icons.mode_edit_outline_outlined,
-                                size: 30,
-                              )),
+                    title: Text(
+                      "About",
+                      style: TextStyle(fontSize: 15, color: Colors.blue),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 65, right: 5),
-                    child: Divider(),
+                    subtitle: modifyAbout
+                        ? TextFormField(
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                            autofocus: true,
+                            controller: aboutC,
+                          )
+                        : Text(
+                            about,
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                          ),
+                    trailing: modifyAbout
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              setState(() {
+                                modifyAbout = true;
+                                aboutC.text = about;
+                              });
+                            },
+                            icon: Icon(
+                              color: Colors.blue,
+                              Icons.mode_edit_outline_outlined,
+                              size: 30,
+                            )),
                   ),
                 ],
               ),

@@ -23,16 +23,9 @@ class _LogRegState extends State<LogReg> {
   requestPermissions() async {
     await Permission.camera.request();
     await Permission.storage.request();
-    await Permission.videos.request();
-    await Permission.microphone.request();
-    if (await Permission.camera.isDenied ||
-        await Permission.storage.isDenied ||
-        await Permission.videos.isDenied ||
-        await Permission.microphone.isDenied) {
+    if (await Permission.camera.isDenied || await Permission.storage.isDenied) {
       await Permission.camera.isGranted;
       await Permission.storage.isGranted;
-      await Permission.videos.isGranted;
-      await Permission.microphone.isGranted;
     }
   }
 
@@ -75,7 +68,7 @@ class _LogRegState extends State<LogReg> {
               padding: EdgeInsets.all(8.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "QuickMessaging for Communicate with your friend and send updates to friends.",
+                "QuickMessaging for Communicate with your friend and send messages to friends.",
                 style: TextStyle(fontSize: 20, color: Colors.white),
               ),
             ),
@@ -97,7 +90,9 @@ class _LogRegState extends State<LogReg> {
                         backgroundcolor: Colors.blue.shade700,
                         foregroundcolor: Colors.white,
                         onpressed: () {
-                          logregcontainer(const Register(), context);
+                          logregcontainer(
+                              const Register(),
+                              context);
                         },
                         name: "Register",
                       );

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
+import '../Logins/showdialogs.dart';
 import '../Ui/customcard.dart';
 import 'chathome.dart';
 
@@ -105,7 +106,10 @@ class _SearchUserState extends State<SearchUser> {
                   }
 
                   final filteredUsers = users.where((user) {
-                    final username = user["username"].toString().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+                    final username = user["username"]
+                        .toString()
+                        .toLowerCase()
+                        .replaceAll(RegExp(r'\s+'), '');
                     final searchQuery = searchC.text.toLowerCase();
 
                     return username.contains(searchQuery) &&
@@ -145,17 +149,14 @@ class _SearchUserState extends State<SearchUser> {
                                       ConnectionState.waiting) {
                                     return Center();
                                   }
-                                  if (bsnapshot.data
-                                          ?.data()?["blocked"]
-                                          .toString() ==
-                                      "true") {
+                                  if (!bsnapshot.hasData ||
+                                      bsnapshot.data?.data()?["blocked"] ==
+                                          true) {
                                     return Center();
                                   }
-                                  if (bsnapshot.data?.data() == null ||
-                                      bsnapshot.data
-                                              ?.data()?["blocked"]
-                                              .toString() ==
-                                          "false") {
+                                  if (bsnapshot.data!.data() == null ||
+                                      bsnapshot.data!.data()!["blocked"] ==
+                                          false) {
                                     return InkWell(
                                       key: inkwell,
                                       onTap: () {
@@ -275,14 +276,24 @@ class _SearchUserState extends State<SearchUser> {
                                                 ],
                                               ),
                                               onTap: () {
-                                                blockUser(userData["userid"]);
+                                                showMessageBox(
+                                                    block ? "Unblock" : "Block",
+                                                    block
+                                                        ? "Are you sure to Unblock ${userData["username"]}?"
+                                                        : "Are you sure to block ${userData["username"]}?",
+                                                    context,
+                                                    block ? "Unblock" : "Block",
+                                                    () {
+                                                  blockUser(userData["userid"]);
+                                                  Navigator.pop(context);
+                                                });
                                               },
                                             ),
                                           ],
                                         );
                                       },
                                       child: CustomCard(
-                                        subtitle: Text(""),
+                                        subtitle: Center(),
                                         username: userData["username"],
                                         imageurl: userData["userimageurl"],
                                         color: Colors.white,

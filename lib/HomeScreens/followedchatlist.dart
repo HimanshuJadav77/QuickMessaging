@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quickmsg/HomeScreens/chathome.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
+import 'package:quickmsg/HomeScreens/searchuser.dart';
 import 'package:quickmsg/Ui/customcard.dart';
+import 'package:quickmsg/Ui/elvb.dart';
 
 class FollowedChatList extends StatefulWidget {
   const FollowedChatList({super.key});
@@ -14,11 +16,6 @@ class FollowedChatList extends StatefulWidget {
 class _FollowedChatListState extends State<FollowedChatList> {
   @override
   Widget build(BuildContext context) {
-    final userid = FirebaseAuth.instance.currentUser!.uid;
-    final firestore = FirebaseFirestore.instance
-        .collection("Users")
-        .doc(userid)
-        .collection("following");
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -32,14 +29,41 @@ class _FollowedChatListState extends State<FollowedChatList> {
             icon: Icon(Icons.arrow_back_ios)),
       ),
       body: StreamBuilder(
-        stream: firestore.where("following", isEqualTo: true).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection("Users")
+            .doc(currentUserId)
+            .collection("following")
+            .where("following", isEqualTo: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(),
             );
           }
+
           final usersList = snapshot.data!.docs.toList();
+          if (!snapshot.hasData || usersList.isEmpty) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text("No user for chatting follow first"),
+                ),
+                Elvb(
+                    onpressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchUser(),
+                          ));
+                    },
+                    name: "Search Users",
+                    foregroundcolor: Colors.white,
+                    backgroundcolor: Colors.blue)
+              ],
+            );
+          }
           return ListView.builder(
             itemCount: usersList.length,
             itemBuilder: (context, index) {
@@ -71,10 +95,12 @@ class _FollowedChatListState extends State<FollowedChatList> {
                             ));
                       },
                       child: CustomCard(
-                        subtitle: Text(""),
-                          color: Colors.white,
-                          username: userData["username"],
-                          imageurl: userData["userimageurl"], trailing: Text(""),),
+                        subtitle: Center(),
+                        color: Colors.white,
+                        username: userData["username"],
+                        imageurl: userData["userimageurl"],
+                        trailing: Text(""),
+                      ),
                     );
                   });
             },

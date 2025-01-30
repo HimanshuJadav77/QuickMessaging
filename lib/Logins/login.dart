@@ -23,8 +23,7 @@ class _LoginState extends State<Login> {
 
   login(String email, String password) async {
     try {
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       if (FirebaseAuth.instance.currentUser!.emailVerified) {
         Navigator.pushReplacement(
             // ignore: use_build_context_synchronously
@@ -33,7 +32,8 @@ class _LoginState extends State<Login> {
               builder: (context) => const HomeScreen(),
             ));
       } else {
-        showCustomDialog("Login",
+        showCustomDialog(
+            "Login",
             "Your Email Is Not Verified We Have Been Sent Email Verification Link After Link Verification Login Again.",
             // ignore: use_build_context_synchronously
             context);
@@ -57,11 +57,7 @@ class _LoginState extends State<Login> {
             children: [
               Text(
                 "Login",
-                style: TextStyle(
-                    fontSize: 35,
-                    fontFamily: "karsyu",
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black),
+                style: TextStyle(fontSize: 35, fontFamily: "karsyu", fontWeight: FontWeight.w400, color: Colors.black),
               ),
             ],
           ),
@@ -88,10 +84,8 @@ class _LoginState extends State<Login> {
                   label: const Text("Enter Email"),
                   prefixIcon: const Icon(Icons.mail_outline),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           Padding(
@@ -108,19 +102,25 @@ class _LoginState extends State<Login> {
                           pass = !pass;
                         });
                       },
-                      icon: Icon(pass
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined)),
+                      icon: Icon(pass ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
                   prefixIcon: const Icon(Icons.password_outlined),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           const SizedBox(
             height: 10,
+          ),
+          InkWell(
+            onTap: () {},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 275.0),
+              child: Text(
+                "Forgot Password?",
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
           ),
           loggedin
               ? const Center(
@@ -136,11 +136,7 @@ class _LoginState extends State<Login> {
                   textsize: 17.0,
                   heigth: 50.0,
                   onpressed: () {
-                    setState(() {
-                      loggedin = true;
-                    });
-                    if (emailController.text != "" &&
-                        passController.text != "") {
+                    if (emailController.text != "" && passController.text != "") {
                       login(emailController.text, passController.text);
                       setState(() {
                         loggedin = true;
@@ -167,8 +163,7 @@ class _LoginState extends State<Login> {
                     Navigator.pop(context);
                     logregcontainer(const Register(), context);
                   },
-                  child: const Text("Register",
-                      style: TextStyle(fontSize: 18, color: Colors.blue)))
+                  child: const Text("Register", style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],
           )
         ],

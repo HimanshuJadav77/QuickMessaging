@@ -33,7 +33,7 @@ class Elvb extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: backgroundcolor,
               foregroundColor: foregroundcolor,
-              elevation: 20,
+              elevation: 8,
               shadowColor: Colors.blueAccent,
             ),
             onPressed: onpressed,

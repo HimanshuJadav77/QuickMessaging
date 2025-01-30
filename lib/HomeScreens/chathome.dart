@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/customcard.dart';
@@ -13,16 +14,15 @@ class ChatHome extends StatefulWidget {
 }
 
 final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-final CollectionReference usersList = FirebaseFirestore.instance
-    .collection("Users")
-    .doc(currentUserId)
-    .collection("chats");
+final CollectionReference usersList =
+    FirebaseFirestore.instance.collection("Users").doc(currentUserId).collection("chats");
 
 class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
   List<bool> selectedStates = [];
   int indexSelected = 0;
   List<dynamic> selectedUserList = [];
-  final Map<String, String> _users = {};
+  var messageCount = 0;
+  final firestore = FirebaseFirestore.instance.collection("Users");
 
   @override
   void initState() {
@@ -32,11 +32,17 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
   deleteChat(selectedUserList) async {
     showMessageBox(
       "Deletion",
-      "Are you want to delete this chats?",
+      "Are you want to delete this chats? It also delete the conversation.",
       context,
-      () {
+      "Delete",
+      () async {
         for (var userid in selectedUserList) {
           usersList.doc(userid).delete();
+          final docs =
+              await firestore.doc(currentUserId).collection("save_chat").doc(userid).collection("messages").get();
+          for (var msg in docs.docs) {
+            msg.reference.delete();
+          }
         }
         Navigator.pop(context);
       },
@@ -53,14 +59,13 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
               child: Text("No Users Available For Chat."),
             );
           }
-          if (streamSnapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+          // if (streamSnapshot.connectionState == ConnectionState.waiting) {
+          //   return Center(
+          //     child: CircularProgressIndicator(),
+          //   );
+          // }
 
-          final List<DocumentSnapshot> users =
-              streamSnapshot.data!.docs.toList();
+          final List<DocumentSnapshot> users = streamSnapshot.data!.docs.toList();
           if (selectedStates.length != users.length) {
             selectedStates = List.generate(
               users.length,
@@ -79,7 +84,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
             body: Column(
               children: [
                 AnimatedContainer(
-                  curve: Curves.easeInOut,
+                  curve: Curves.linear,
                   height: selectedStates.contains(true) ? 50 : 0,
                   duration: Duration(milliseconds: 200),
                   child: AppBar(
@@ -132,36 +137,27 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                       }
 
                       return FutureBuilder(
-                          future: FirebaseFirestore.instance
-                              .collection("Users")
-                              .doc(user.id)
-                              .get(),
+                          future: FirebaseFirestore.instance.collection("Users").doc(user.id).get(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData && snapshot.data != null) {
                               final userData = snapshot.data!;
-                              final preMessage = _users[userData["userid"]];
 
                               return Column(
                                 children: [
                                   InkWell(
                                       onLongPress: () {
                                         setState(() {
-                                          selectedStates[index] =
-                                              !selectedStates[index];
+                                          selectedStates[index] = !selectedStates[index];
                                         });
                                       },
                                       onTap: () {
-                                        if (!selectedStates[index] &&
-                                            !selectedStates.contains(true)) {
-                                          Navigator.push(
+                                        if (!selectedStates[index] && !selectedStates.contains(true)) {
+                                          Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ChatScreen(
-                                                  imageurl:
-                                                      userData["userimageurl"],
-                                                  username:
-                                                      userData["username"],
+                                                builder: (context) => ChatScreen(
+                                                  imageurl: userData["userimageurl"],
+                                                  username: userData["username"],
                                                   userid: userData["userid"],
                                                   about: userData["about"],
                                                   email: userData["email"],
@@ -169,23 +165,104 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                               ));
                                         } else {
                                           setState(() {
-                                            selectedStates[index] =
-                                                !selectedStates[index];
+                                            selectedStates[index] = !selectedStates[index];
                                           });
                                         }
                                       },
                                       child: Stack(
                                         children: [
+                                          StreamBuilder(
+                                              stream: FirebaseFirestore.instance
+                                                  .collection("Users")
+                                                  .doc(userData["userid"])
+                                                  .collection("save_chat")
+                                                  .doc(currentUserId)
+                                                  .collection("messages")
+                                                  .orderBy("time")
+                                                  .snapshots(),
+                                              builder: (context, snapshot) {
+                                                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                                  return Center();
+                                                }
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  //
+                                                }
+                                                if (snapshot.hasData) {
+                                                  final data = snapshot.data!.docs.toList();
+
+                                                  messageCount = data.where(
+                                                    (message) {
+                                                      return message["sender"] == userData["userid"] &&
+                                                          message["messagestate"] == "send";
+                                                    },
+                                                  ).length;
+                                                }
+                                                return SizedBox();
+                                              }),
                                           CustomCard(
-                                            subtitle: Text(preMessage != null
-                                                ? preMessage.toString()
-                                                : ""),
+                                            subtitle: StreamBuilder(
+                                                stream: FirebaseFirestore.instance
+                                                    .collection("Users")
+                                                    .doc(currentUserId)
+                                                    .collection("save_chat")
+                                                    .doc(userData["userid"])
+                                                    .collection("messages")
+                                                    .orderBy("time")
+                                                    .snapshots(),
+                                                builder: (context, snapshot) {
+                                                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                                    return Center();
+                                                  }
+                                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                                    //
+                                                  }
+
+                                                  final data = snapshot.data!.docs.toList();
+                                                  final message = data.last.data()["message"];
+                                                  var senderId = data.last.data()["sender"];
+
+                                                  if (messageCount > 1) {
+                                                    return Text("$messageCount new messages");
+                                                  } else if (messageCount == 1) {
+                                                    return Text("1 new message");
+                                                  } else if (messageCount == 0) {
+                                                    if (message == currentUserId || message == userData["userid"]) {
+                                                      final filename = data.last.id + data.last.data()["extension"];
+                                                      return Text(filename);
+                                                    } else if (senderId == currentUserId ||
+                                                        senderId == userData["userid"]) {
+                                                      return Text(message);
+                                                    }
+                                                  }
+
+                                                  return Center();
+                                                }),
                                             trailing: Text(""),
                                             username: userData["username"],
                                             imageurl: userData["userimageurl"],
-                                            color: selectedStates[index]
-                                                ? Colors.blue.shade50
-                                                : Colors.white,
+                                            color: selectedStates[index] ? Colors.blue.shade50 : Colors.white,
+                                          ),
+                                          Positioned(
+                                            left: 65,
+                                            bottom: 15,
+                                            child: StreamBuilder(
+                                                stream: firestore.doc(userData["userid"]).snapshots(),
+                                                builder: (context, snapshot) {
+                                                  if (!snapshot.hasData) {}
+                                                  if (snapshot.connectionState == ConnectionState.waiting) {}
+                                                  final snap = snapshot.data?.data();
+                                                  final isOnline = snap?["online"].toString();
+
+                                                  return SizedBox(
+                                                    height: 13,
+                                                    width: 13,
+                                                    child: CircleAvatar(
+                                                      backgroundColor: isOnline == "true"
+                                                          ? Colors.greenAccent.shade400
+                                                          : Colors.transparent,
+                                                    ),
+                                                  );
+                                                }),
                                           ),
                                           selectedStates[index]
                                               ? Positioned(
@@ -193,8 +270,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                                   bottom: 10,
                                                   child: CircleAvatar(
                                                     radius: 12,
-                                                    backgroundColor:
-                                                        Colors.black,
+                                                    backgroundColor: Colors.black,
                                                     child: Icon(
                                                       Icons.check_circle_sharp,
                                                       color: Colors.blueAccent,

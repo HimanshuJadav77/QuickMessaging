@@ -21,38 +21,33 @@ class CustomCard extends StatelessWidget {
   final about;
   final Color color;
   final Widget trailing;
-  final Text subtitle;
 
   // ignore: prefer_typing_uninitialized_variables
+  final subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(),
       color: color,
-      child: Padding(
-        padding: subtitle.data!.isEmpty
-            ? const EdgeInsets.only(top: 8.0,bottom: 8.0)
-            : EdgeInsets.zero,
-        child: ListTile(
-          trailing: trailing,
-          title: Text(
-            username,
-            style: TextStyle(fontSize: 18),
-          ),
-          subtitle: subtitle.data!.isNotEmpty ? subtitle : null,
-          leading: InkWell(
-              child: CircleAvatar(
-                  radius: 30,
-                  child: ClipOval(
-                    child: Image.network(
-                      width: 56,
-                      fit: BoxFit.cover,
-                      imageurl,
-                      filterQuality: FilterQuality.high,
-                    ),
-                  ))),
+      child: ListTile(
+        trailing: trailing,
+        title: Text(
+          username,
+          style: TextStyle(fontSize: 18),
         ),
+        subtitle: subtitle,
+        leading: InkWell(
+            child: CircleAvatar(
+                radius: 30,
+                child: ClipOval(
+                  child: Image.network(
+                    width: 56,
+                    fit: BoxFit.cover,
+                    imageurl,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ))),
       ),
     );
   }

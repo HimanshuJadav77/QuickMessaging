@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 logregcontainer(child, BuildContext context) {
   return showBottomSheet(
-    sheetAnimationStyle:
-        AnimationStyle(duration: const Duration(milliseconds: 700)),
+    sheetAnimationStyle: AnimationStyle(duration: const Duration(milliseconds: 700)),
     enableDrag: true,
     showDragHandle: true,
     elevation: 20,
@@ -11,13 +10,11 @@ logregcontainer(child, BuildContext context) {
     context: context,
     builder: (context) {
       return SingleChildScrollView(
-        physics: const ScrollPhysics(parent: RangeMaintainingScrollPhysics()),
+        physics: PageScrollPhysics(),
         child: SizedBox(
           height: double.maxFinite,
           width: double.maxFinite,
-          child: Center(
-            child: child,
-          ),
+          child: child,
         ),
       );
     },
@@ -32,10 +29,7 @@ showCustomDialog(String title, String content, BuildContext context) {
         title: title != ""
             ? Text(
                 title,
-                style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
               )
             : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -67,8 +61,7 @@ showCustomDialog(String title, String content, BuildContext context) {
   );
 }
 
-showPickerDialog(String title, VoidCallback camera, VoidCallback gallary,
-    BuildContext context) {
+showPickerDialog(String title, VoidCallback camera, VoidCallback gallary, BuildContext context) {
   return showDialog(
     context: context,
     builder: (context) {
@@ -77,10 +70,7 @@ showPickerDialog(String title, VoidCallback camera, VoidCallback gallary,
           children: [
             Text(
               title,
-              style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(
               width: 120,
@@ -132,8 +122,57 @@ showPickerDialog(String title, VoidCallback camera, VoidCallback gallary,
   );
 }
 
-showMessageBox(String title, String content, BuildContext context,
-    VoidCallback onPressed) {
+profileVisibility(BuildContext context, dropDownVal, onChanged, VoidCallback onPressed) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(
+          "Privacy",
+          style: TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        content: Row(
+          children: [
+            Text(
+              "Account Visibility",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 15,
+              ),
+            ),
+            DropdownButton<String>(
+              value: dropDownVal,
+              items: ["Public", "Private"].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ],
+        ),
+        elevation: 10,
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                  onPressed: onPressed,
+                  child: Text(
+                    "Confirm",
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
+                  )),
+            ],
+          )
+        ],
+      );
+    },
+  );
+}
+
+showMessageBox(String title, String content, BuildContext context, buttonName, VoidCallback onPressed) {
   return showDialog(
     context: context,
     builder: (context) {
@@ -141,7 +180,9 @@ showMessageBox(String title, String content, BuildContext context,
         title: Text(
           title,
           style: TextStyle(
-              color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
+              color: title == "Deletion" || title == "Block" ? Colors.red : Colors.blue,
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         content: Text(
@@ -166,9 +207,11 @@ showMessageBox(String title, String content, BuildContext context,
                   )),
               TextButton(
                   onPressed: onPressed,
-                  child: const Text(
-                    "Delete",
-                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  child: Text(
+                    buttonName,
+                    style: TextStyle(
+                        color: buttonName == "Delete" || buttonName == "Block" ? Colors.red : Colors.blue,
+                        fontSize: 16),
                   )),
             ],
           )
@@ -178,16 +221,15 @@ showMessageBox(String title, String content, BuildContext context,
   );
 }
 
-showDeleteChatBox(String title, String content, BuildContext context,
-    VoidCallback deleteForEveryone, VoidCallback deleteForMe) {
+showDeleteChatBox(
+    String title, String content, BuildContext context, VoidCallback deleteForEveryone, VoidCallback deleteForMe) {
   return showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         title: Text(
           title,
-          style: TextStyle(
-              color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         content: Column(
