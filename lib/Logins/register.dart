@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quickmsg/Logins/login.dart';
@@ -10,6 +11,7 @@ import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Logins/verification.dart';
 import 'package:quickmsg/Ui/elvb.dart';
 import 'package:quickmsg/Ui/snackbar.dart';
+import 'package:quickmsg/networkcheck.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -30,22 +32,54 @@ class _RegisterState extends State<Register> {
   bool registered = false;
   File? pickedImage;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    NetworkCheck().initializeInternetStatus(context);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    NetworkCheck().cancelSubscription();
+  }
+
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   register() async {
     try {
       await auth.createUserWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passController.text.trim());
-      if (mounted) Navigator.pop(context);
-      Navigator.push(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(
-            builder: (context) => Verification(
-                pickedImage: pickedImage,
-                user: usernameController.text.trim(),
-                password: passController.text.trim(),
-                email: emailController.text.trim()),
-          ));
+        email: emailController.text.trim(),
+        password: passController.text.trim(),
+      );
+
+      final user = FirebaseAuth.instance.currentUser;
+      UploadTask uploadTask = _storage.ref("UsersImage").child(user!.uid).putFile(pickedImage!);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      final imageurl = await taskSnapshot.ref.getDownloadURL();
+      await FirebaseFirestore.instance.collection("Users").doc(user.uid).set({
+        "username": usernameController.text.trim(),
+        "email": emailController.text.trim(),
+        "password": passController.text.trim(),
+        "userimageurl": imageurl,
+        "userid": user.uid,
+        "about": "",
+        "online": false
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Verification(),
+              ));
+        }
+      });
+      setState(() {
+        registered = false;
+      });
     } on FirebaseAuthException catch (e) {
       setState(() {
         registered = false;
@@ -57,10 +91,8 @@ class _RegisterState extends State<Register> {
 
   Future<bool> checkUsernameExists(String username) async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection("Users")
-          .where("username", isEqualTo: username)
-          .get();
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection("Users").where("username", isEqualTo: username).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         return true;
@@ -83,11 +115,7 @@ class _RegisterState extends State<Register> {
             children: [
               Text(
                 "Register",
-                style: TextStyle(
-                    fontSize: 35,
-                    fontFamily: "karsyu",
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black),
+                style: TextStyle(fontSize: 35, fontFamily: "karsyu", fontWeight: FontWeight.w400, color: Colors.black),
               ),
             ],
           ),
@@ -104,8 +132,7 @@ class _RegisterState extends State<Register> {
             onTap: () {
               showPickerDialog("Image", () async {
                 try {
-                  final photo =
-                      await ImagePicker().pickImage(source: ImageSource.camera);
+                  final photo = await ImagePicker().pickImage(source: ImageSource.camera);
                   if (photo != null) {
                     final tempImage = File(photo.path);
                     setState(() {
@@ -120,8 +147,7 @@ class _RegisterState extends State<Register> {
                 Navigator.pop(context);
               }, () async {
                 try {
-                  final photo = await ImagePicker()
-                      .pickImage(source: ImageSource.gallery);
+                  final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
                   if (photo != null) {
                     final tempImage = File(photo.path);
                     setState(() {
@@ -141,6 +167,7 @@ class _RegisterState extends State<Register> {
                     radius: 60,
                     child: ClipOval(
                       child: Image.file(
+                        height: MediaQuery.of(context).size.height,
                         width: 120,
                         fit: BoxFit.cover,
                         pickedImage!,
@@ -172,10 +199,8 @@ class _RegisterState extends State<Register> {
                     child: Icon(Icons.account_circle_outlined),
                   ),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           Padding(
@@ -187,10 +212,8 @@ class _RegisterState extends State<Register> {
                   label: const Text("Enter Email"),
                   prefixIcon: const Icon(Icons.mail_outline),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           Padding(
@@ -207,15 +230,11 @@ class _RegisterState extends State<Register> {
                           pass = !pass;
                         });
                       },
-                      icon: Icon(!pass
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined)),
+                      icon: Icon(!pass ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
                   prefixIcon: const Icon(Icons.password_outlined),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           Padding(
@@ -232,15 +251,11 @@ class _RegisterState extends State<Register> {
                           cpass = !cpass;
                         });
                       },
-                      icon: Icon(!cpass
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined)),
+                      icon: Icon(!cpass ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
                   prefixIcon: const Icon(Icons.password_sharp),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(30)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30))),
+                      borderSide: const BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(30)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30))),
             ),
           ),
           const SizedBox(
@@ -266,8 +281,7 @@ class _RegisterState extends State<Register> {
                         confirmPassController.text != "") {
                       if (passController.text != confirmPassController.text) {
                         showSnackBar(context, "Passwords Are Not Matched.");
-                      } else if (passController.text.length < 6 &&
-                          passController.text.length < 6) {
+                      } else if (passController.text.length < 6 && passController.text.length < 6) {
                         showSnackBar(context, "Password Length Must be 6.");
                       } else if (pickedImage == null) {
                         showSnackBar(context, "Please Select Image.");
@@ -275,24 +289,13 @@ class _RegisterState extends State<Register> {
                         setState(() {
                           registered = true;
                         });
-                        bool isUserExist =
-                            await checkUsernameExists(usernameController.text);
+                        bool isUserExist = await checkUsernameExists(usernameController.text);
 
                         if (context.mounted) {
                           isUserExist
-                              ? showCustomDialog("Register",
-                                  "Username Is Already Exist.", context)
+                              ? showCustomDialog("Register", "Username Is Already Exist.", context)
                               : register();
                         }
-
-                        Timer(
-                          const Duration(seconds: 2),
-                          () {
-                            setState(() {
-                              registered = false;
-                            });
-                          },
-                        );
                       }
                     } else {
                       showSnackBar(context, "Please Fill All Fields.");
@@ -316,8 +319,7 @@ class _RegisterState extends State<Register> {
                     Navigator.pop(context);
                     logregcontainer(const Login(), context);
                   },
-                  child: const Text("Login",
-                      style: TextStyle(fontSize: 18, color: Colors.blue)))
+                  child: const Text("Login", style: TextStyle(fontSize: 18, color: Colors.blue)))
             ],
           )
         ],

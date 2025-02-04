@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:quickmsg/Logins/register.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/elvb.dart';
+import 'package:quickmsg/networkcheck.dart';
 import 'login.dart';
 
 class LogReg extends StatefulWidget {
@@ -18,6 +18,14 @@ class _LogRegState extends State<LogReg> {
   void initState() {
     super.initState();
     requestPermissions();
+    NetworkCheck().initializeInternetStatus(context);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    NetworkCheck().cancelSubscription();
   }
 
   requestPermissions() async {
@@ -36,31 +44,36 @@ class _LogRegState extends State<LogReg> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         decoration: const BoxDecoration(
-            gradient: LinearGradient(tileMode: TileMode.decal, colors: [
-              Colors.deepPurple,
-              Colors.indigo,
-              Colors.blue,
-            ]),
+            gradient: LinearGradient(tileMode: TileMode.decal, colors: [Colors.blueAccent, Colors.blueGrey]),
             color: Colors.blue),
         child: ListView(
           children: [
             const SizedBox(
               height: 100,
             ),
-            const Row(
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: FaIcon(
-                    FontAwesomeIcons.leaf,
-                    size: 30,
+                Container(
+                  decoration: BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      "assets/images/logo.png",
+                      height: 50,
+                      width: 50,
+                    ),
                   ),
                 ),
-                Text(
-                  "QuickMessaging",
-                  style: TextStyle(fontSize: 30, color: Colors.white),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Text(
+                    "Quick Messaging",
+                    style: TextStyle(fontSize: 25, color: Colors.white, fontFamily: "karsyu"),
+                  ),
                 )
               ],
             ),
@@ -69,7 +82,7 @@ class _LogRegState extends State<LogReg> {
               child: Text(
                 textAlign: TextAlign.center,
                 "QuickMessaging for Communicate with your friend and send messages to friends.",
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                style: TextStyle(fontSize: 17, color: Colors.white),
               ),
             ),
             const SizedBox(
@@ -90,9 +103,7 @@ class _LogRegState extends State<LogReg> {
                         backgroundcolor: Colors.blue.shade700,
                         foregroundcolor: Colors.white,
                         onpressed: () {
-                          logregcontainer(
-                              const Register(),
-                              context);
+                          logregcontainer(const Register(), context);
                         },
                         name: "Register",
                       );

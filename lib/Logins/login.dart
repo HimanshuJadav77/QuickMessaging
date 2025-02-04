@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/home.dart';
+import 'package:quickmsg/Logins/forgotpass.dart';
 import 'package:quickmsg/Logins/register.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
+import 'package:quickmsg/networkcheck.dart';
 import '../Ui/elvb.dart';
 import '../Ui/snackbar.dart';
 
@@ -21,6 +23,20 @@ class _LoginState extends State<Login> {
   bool cpass = false;
   bool loggedin = false;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    NetworkCheck().initializeInternetStatus(context);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    NetworkCheck().cancelSubscription();
+  }
+
   login(String email, String password) async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
@@ -31,12 +47,17 @@ class _LoginState extends State<Login> {
             MaterialPageRoute(
               builder: (context) => const HomeScreen(),
             ));
+        setState(() {
+          loggedin = false;
+        });
       } else {
-        showCustomDialog(
-            "Login",
-            "Your Email Is Not Verified We Have Been Sent Email Verification Link After Link Verification Login Again.",
-            // ignore: use_build_context_synchronously
-            context);
+        FirebaseAuth.instance.currentUser!.sendEmailVerification();
+        FirebaseAuth.instance.signOut();
+        // ignore: use_build_context_synchronously
+        showCustomDialog("Login", "Your email is not verified We send email on your mail please verify it.", context);
+        setState(() {
+          loggedin = false;
+        });
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -112,8 +133,14 @@ class _LoginState extends State<Login> {
           const SizedBox(
             height: 10,
           ),
-          InkWell(
-            onTap: () {},
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Forgotpass(),
+                  ));
+            },
             child: Padding(
               padding: const EdgeInsets.only(left: 275.0),
               child: Text(

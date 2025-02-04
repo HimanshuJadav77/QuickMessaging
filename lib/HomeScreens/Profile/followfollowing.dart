@@ -37,23 +37,20 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                 Navigator.pop(context);
               },
               icon: Icon(Icons.arrow_back_ios)),
-          bottom: TabBar(
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.black,
-              tabs: [
-                Tab(
-                  child: Text(
-                    "Follower",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-                Tab(
-                  child: Text(
-                    "Following",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ]),
+          bottom: TabBar(labelColor: Colors.blue, unselectedLabelColor: Colors.black, tabs: [
+            Tab(
+              child: Text(
+                "Follower",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+            Tab(
+              child: Text(
+                "Following",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ]),
         ),
         body: TabBarView(children: [
           StreamBuilder(
@@ -81,11 +78,9 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                 itemBuilder: (context, index) {
                   final followerId = followerIds[index].id;
                   return FutureBuilder(
-                    future:
-                        _firestore.collection("Users").doc(followerId).get(),
+                    future: _firestore.collection("Users").doc(followerId).get(),
                     builder: (context, userSnapshot) {
-                      if (userSnapshot.connectionState ==
-                          ConnectionState.waiting) {
+                      if (userSnapshot.connectionState == ConnectionState.waiting) {
                         return Center(
                           child: CircularProgressIndicator(),
                         );
@@ -123,14 +118,13 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                             }
                           },
                           title: Text(
-                            followerId == currentUserId
-                                ? "$username(you)"
-                                : username,
+                            followerId == currentUserId ? "$username(you)" : username,
                           ),
                           leading: CircleAvatar(
                               radius: 30,
                               child: ClipOval(
                                 child: Image.network(
+                                  height: MediaQuery.of(context).size.height,
                                   width: 56,
                                   fit: BoxFit.cover,
                                   imageurl,
@@ -170,11 +164,9 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                 itemBuilder: (context, index) {
                   final followingId = followingIds[index].id;
                   return FutureBuilder(
-                    future:
-                        _firestore.collection("Users").doc(followingId).get(),
+                    future: _firestore.collection("Users").doc(followingId).get(),
                     builder: (context, userSnapshot) {
-                      if (userSnapshot.connectionState ==
-                          ConnectionState.waiting) {
+                      if (userSnapshot.connectionState == ConnectionState.waiting) {
                         return Center(
                           child: CircularProgressIndicator(),
                         );
@@ -212,14 +204,13 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                             }
                           },
                           title: Text(
-                            followingId == currentUserId
-                                ? "$username(you)"
-                                : username,
+                            followingId == currentUserId ? "$username(you)" : username,
                           ),
                           leading: CircleAvatar(
                               radius: 30,
                               child: ClipOval(
                                 child: Image.network(
+                                  height: MediaQuery.of(context).size.height,
                                   width: 56,
                                   fit: BoxFit.cover,
                                   imageurl,

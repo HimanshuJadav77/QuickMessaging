@@ -11,6 +11,8 @@ import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/snackbar.dart';
 
+import '../../Ui/elvb.dart';
+
 class SearchUserProfile extends StatefulWidget {
   const SearchUserProfile(
       {super.key,
@@ -41,11 +43,69 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
   bool block = false;
   bool blockedbyUser = false;
   bool requested = false;
-  var privacyM;
+  var privacyMode;
 
   @override
   void initState() {
     super.initState();
+    getBlockState();
+    setFollowFollowing();
+  }
+
+  setFollowFollowing() async {
+    final myfollower = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .collection("followers")
+        .doc(widget.userid)
+        .get();
+    final myfollowing = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .collection("following")
+        .doc(widget.userid)
+        .get();
+    final userfollower = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(widget.userid)
+        .collection("followers")
+        .doc(currentUserId)
+        .get();
+    final userfollowing = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(widget.userid)
+        .collection("following")
+        .doc(currentUserId)
+        .get();
+    if (myfollower.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(currentUserId)
+          .collection("followers")
+          .doc(widget.userid)
+          .set({"follower": false});
+    } else if (myfollowing.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(currentUserId)
+          .collection("following")
+          .doc(widget.userid)
+          .set({"following": false});
+    } else if (userfollowing.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(widget.userid)
+          .collection("following")
+          .doc(currentUserId)
+          .set({"following": false});
+    } else if (userfollower.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(widget.userid)
+          .collection("followers")
+          .doc(currentUserId)
+          .set({"follower": false});
+    }
   }
 
   blockUser(blockUserid) async {
@@ -90,8 +150,15 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
           .collection("blockedid")
           .doc(blockUserid)
           .set({"blocked": true});
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(blockUserid)
+          .collection("requests")
+          .doc(currentUserId)
+          .update({"request": false});
       setState(() {
         block = true;
+        requested = false;
       });
     }
   }
@@ -103,6 +170,14 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
         .collection("blockedid")
         .doc(widget.userid)
         .get();
+    if (!getBlockState.exists) {
+      await FirebaseFirestore.instance
+          .collection("block")
+          .doc(currentUserId)
+          .collection("blockedid")
+          .doc(widget.userid)
+          .set({"blocked": false});
+    }
     final data = getBlockState.data()?["blocked"].toString();
     if (data == "true") {
       setState(() {
@@ -195,9 +270,8 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          blockedbyUser
-              ? Center()
-              : IconButton(
+          blockedbyUser == false
+              ? IconButton(
                   onPressed: () {
                     showMenu(
                       color: Colors.white,
@@ -231,6 +305,7 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                     );
                   },
                   icon: Icon(Icons.more_vert_outlined))
+              : Center()
         ],
         leading: IconButton(
             onPressed: () {
@@ -246,8 +321,10 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
               .doc(currentUserId)
               .snapshots(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {}
-            if (!snapshot.hasData || !snapshot.data!.exists) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center();
+            }
+            if (!snapshot.hasData || snapshot.data!.exists == false) {
               FirebaseFirestore.instance
                   .collection("block")
                   .doc(widget.userid)
@@ -259,6 +336,8 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
               final blockState = snapshot.data!["blocked"];
               if (blockState == true) {
                 blockedbyUser = true;
+                requested = false;
+                request();
               } else if (blockState == false) {
                 blockedbyUser = false;
               }
@@ -268,392 +347,405 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                 ? Center(
                     child: Text("${widget.username} has been blocked you."),
                   )
-                : ListView(
-                    children: [
-                      SizedBox(
-                        height: 190,
-                        child: Stack(
-                          children: [
-                            StreamBuilder(
-                                stream: FirebaseFirestore.instance
-                                    .collection("Users")
-                                    .doc(widget.userid) // Assuming currentUserId is defined somewhere
-                                    .collection("privacy")
-                                    .doc("mode")
-                                    .snapshots(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return SizedBox();
-                                  }
-                                  if (!snapshot.hasData || !snapshot.data!.exists) {
-                                    FirebaseFirestore.instance
-                                        .collection("Users")
-                                        .doc(widget.userid)
-                                        .collection("privacy")
-                                        .doc("mode")
-                                        .set({"privacy": "public"});
-                                  }
-                                  if (snapshot.hasData) {
-                                    final privacy = snapshot.data?["privacy"];
+                : StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection("Users")
+                        .doc(widget.userid) // Assuming currentUserId is defined somewhere
+                        .collection("privacy")
+                        .doc("mode")
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center();
+                      }
+                      if (!snapshot.hasData || snapshot.data!.exists == false) {
+                        FirebaseFirestore.instance
+                            .collection("Users")
+                            .doc(widget.userid)
+                            .collection("privacy")
+                            .doc("mode")
+                            .set({"privacy": "public"});
+                        return Center();
+                      }
 
-                                    if (privacy == "private") {
-                                      private = true;
-                                      public = false;
-                                    } else if (privacy == "public") {
-                                      private = false;
-                                      public = true;
-                                    }
+                      final privacy = snapshot.data?["privacy"];
 
-                                    return Positioned(
-                                        top: 100,
-                                        right: 100,
-                                        child: Text(
-                                          privacy == "private" ? "Private" : "Public",
-                                          style: TextStyle(color: Colors.blue),
-                                        ));
-                                  }
-                                  return SizedBox();
-                                }),
-                            Row(
+                      if (privacy == "private") {
+                        private = true;
+                        public = false;
+                      } else if (privacy == "public") {
+                        public = true;
+                        private = false;
+                      }
+
+                      return ListView(
+                        children: [
+                          SizedBox(
+                            height: 190,
+                            child: Stack(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 30.0),
-                                  child: Card(
-                                    elevation: 10,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
-                                    child: CircleAvatar(
-                                      radius: 50,
-                                      child: ClipOval(
-                                        child: Image.network(
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return CircularProgressIndicator();
-                                          },
-                                          width: 120,
-                                          fit: BoxFit.cover,
-                                          widget.imageurl,
-                                          filterQuality: FilterQuality.high,
+                                Positioned(
+                                    top: 100,
+                                    right: 100,
+                                    child: Text(
+                                      privacy == "private" ? "Private" : "Public",
+                                      style: TextStyle(color: Colors.blue),
+                                    )),
+                                Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 30.0),
+                                      child: Card(
+                                        elevation: 10,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
+                                        child: CircleAvatar(
+                                          radius: 50,
+                                          child: ClipOval(
+                                            child: Image.network(
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return CircularProgressIndicator();
+                                              },
+                                              width: 120,
+                                              height: MediaQuery.of(context).size.height,
+                                              fit: BoxFit.cover,
+                                              widget.imageurl,
+                                              filterQuality: FilterQuality.high,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (private && followState || public) {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => FollowFollowingPage(
-                                              userid: widget.userid,
+                                    InkWell(
+                                      onTap: () {
+                                        if (private && followState || public) {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => FollowFollowingPage(
+                                                  userid: widget.userid,
+                                                ),
+                                              ));
+                                        }
+                                      },
+                                      child: SizedBox(
+                                        width: 270,
+                                        height: 70,
+                                        child: Stack(
+                                          children: [
+                                            Positioned(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(left: 40, top: 5),
+                                                child: Text(
+                                                  "Follower",
+                                                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                ),
+                                              ),
                                             ),
-                                          ));
-                                    }
-                                  },
-                                  child: SizedBox(
-                                    width: 270,
-                                    height: 70,
-                                    child: Stack(
-                                      children: [
-                                        Positioned(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 40, top: 5),
-                                            child: Text(
-                                              "Follower",
-                                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                            Positioned(
+                                              right: 30,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(left: 40, top: 5),
+                                                child: Text(
+                                                  "Following",
+                                                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          right: 30,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 40, top: 5),
-                                            child: Text(
-                                              "Following",
-                                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
-                                            ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          right: 195,
-                                          top: 25,
-                                          child: StreamBuilder(
-                                              stream: _firestore
-                                                  .collection("Users")
-                                                  .doc(widget.userid)
-                                                  .collection("followers")
-                                                  .where("follower", isEqualTo: true)
-                                                  .snapshots(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  return SizedBox();
-                                                }
-                                                if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                                                  _firestore
+                                            Positioned(
+                                              right: 195,
+                                              top: 25,
+                                              child: StreamBuilder(
+                                                  stream: _firestore
                                                       .collection("Users")
                                                       .doc(widget.userid)
                                                       .collection("followers")
-                                                      .doc(currentUserId)
-                                                      .set({"follower": false});
-                                                  return Center();
-                                                }
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(left: 70, top: 5),
-                                                  child: Text(
-                                                    "${snapshot.data?.docs.length}",
-                                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-                                        Positioned(
-                                          right: 65,
-                                          top: 25,
-                                          child: StreamBuilder(
-                                              stream: _firestore
-                                                  .collection("Users")
-                                                  .doc(widget.userid)
-                                                  .collection("following")
-                                                  .where("following", isEqualTo: true)
-                                                  .snapshots(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  return SizedBox();
-                                                }
-                                                if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                                                  _firestore
+                                                      .where("follower", isEqualTo: true)
+                                                      .snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      return Center();
+                                                    }
+                                                    if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                                                      _firestore
+                                                          .collection("Users")
+                                                          .doc(widget.userid)
+                                                          .collection("followers")
+                                                          .doc(currentUserId)
+                                                          .set({"follower": false});
+                                                      return Center();
+                                                    }
+                                                    return Padding(
+                                                      padding: const EdgeInsets.only(left: 70, top: 5),
+                                                      child: Text(
+                                                        "${snapshot.data?.docs.length}",
+                                                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+                                            Positioned(
+                                              right: 65,
+                                              top: 25,
+                                              child: StreamBuilder(
+                                                  stream: _firestore
                                                       .collection("Users")
                                                       .doc(widget.userid)
                                                       .collection("following")
-                                                      .doc(currentUserId)
-                                                      .set({"following": false});
-                                                  return Center();
-                                                }
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(left: 70, top: 5),
-                                                  child: Text(
-                                                    "${snapshot.data!.docs.length}",
-                                                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 90,
-                                left: 10,
-                                right: 5,
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width - 95,
-                                      child: Divider(
-                                        color: Colors.black54,
-                                      )),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 10),
-                                    child: SizedBox(
-                                      height: 70,
-                                      width: 70,
-                                      child: FloatingActionButton(
-                                        elevation: 10,
-                                        splashColor: Colors.white24,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-                                        onPressed: () async {
-                                          if (private && followState || public) {
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => ChatScreen(
-                                                    imageurl: widget.imageurl,
-                                                    username: widget.username,
-                                                    userid: widget.userid,
-                                                    about: widget.about,
-                                                    email: widget.email,
-                                                  ),
-                                                ));
-                                            await _firestore
-                                                .collection("Users")
-                                                .doc(currentUserId)
-                                                .collection("chats")
-                                                .doc(widget.userid)
-                                                .set({"chat": true, "time": FieldValue.serverTimestamp()});
-                                          } else {
-                                            showSnackBar(context, "This profile is private follow first.");
-                                          }
-                                        },
-                                        backgroundColor: Colors.blue.shade400,
-                                        child: Icon(
-                                          Icons.message_outlined,
-                                          color: Colors.white,
-                                          size: 30,
+                                                      .where("following", isEqualTo: true)
+                                                      .snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      return Center();
+                                                    }
+                                                    if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                                                      _firestore
+                                                          .collection("Users")
+                                                          .doc(widget.userid)
+                                                          .collection("following")
+                                                          .doc(currentUserId)
+                                                          .set({"following": false});
+                                                      return Center();
+                                                    }
+                                                    return Padding(
+                                                      padding: const EdgeInsets.only(left: 70, top: 5),
+                                                      child: Text(
+                                                        "${snapshot.data!.docs.length}",
+                                                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              top: 120,
-                              left: 2,
-                              right: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ListTile(
-                                  title: Text(
-                                    "Username",
-                                    style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
+                                    )
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 90,
+                                    left: 10,
+                                    right: 5,
                                   ),
-                                  subtitle: Text(
-                                    widget.username,
-                                    style: TextStyle(fontSize: 18, color: Colors.black),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                          width: MediaQuery.of(context).size.width - 95,
+                                          child: Divider(
+                                            color: Colors.black54,
+                                          )),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 10),
+                                        child: SizedBox(
+                                          height: 70,
+                                          width: 70,
+                                          child: FloatingActionButton(
+                                            elevation: 10,
+                                            splashColor: Colors.white24,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                                            onPressed: () async {
+                                              if (private && followState || public) {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => ChatScreen(
+                                                        imageurl: widget.imageurl,
+                                                        username: widget.username,
+                                                        userid: widget.userid,
+                                                        about: widget.about,
+                                                        email: widget.email,
+                                                      ),
+                                                    ));
+                                                await _firestore
+                                                    .collection("Users")
+                                                    .doc(currentUserId)
+                                                    .collection("chats")
+                                                    .doc(widget.userid)
+                                                    .set({"chat": true, "time": FieldValue.serverTimestamp()});
+                                              } else {
+                                                showCustomDialog(
+                                                    "User", "This profile is private you must request.", context);
+                                              }
+                                            },
+                                            backgroundColor: Colors.blue.shade400,
+                                            child: Icon(
+                                              Icons.message_outlined,
+                                              color: Colors.white,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: ListTile(
-                            title: Text(
-                              "Email",
-                              style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              widget.email,
-                              style: TextStyle(fontSize: 18, color: Colors.black),
+                                Positioned(
+                                  top: 120,
+                                  left: 2,
+                                  right: 2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ListTile(
+                                      title: Text(
+                                        "Username",
+                                        style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(
+                                        widget.username,
+                                        style: TextStyle(fontSize: 18, color: Colors.black),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                      widget.about != ""
-                          ? Padding(
+                          SizedBox(
+                            width: double.maxFinite,
+                            child: Padding(
                               padding: const EdgeInsets.only(left: 10.0),
                               child: ListTile(
                                 title: Text(
-                                  "About",
+                                  "Email",
                                   style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text(
-                                  widget.about,
+                                  widget.email,
                                   style: TextStyle(fontSize: 18, color: Colors.black),
                                 ),
                               ),
-                            )
-                          : Center(),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Divider(
-                          color: Colors.black54,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 400,
-                        child: StreamBuilder(
-                            stream: _firestore
-                                .collection("Users")
-                                .doc(currentUserId)
-                                .collection("following")
-                                .doc(widget.userid)
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData || !snapshot.data!.exists) {
-                                _firestore
+                            ),
+                          ),
+                          widget.about != ""
+                              ? Padding(
+                                  padding: const EdgeInsets.only(left: 10.0),
+                                  child: ListTile(
+                                    title: Text(
+                                      "About",
+                                      style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Text(
+                                      widget.about,
+                                      style: TextStyle(fontSize: 18, color: Colors.black),
+                                    ),
+                                  ),
+                                )
+                              : Center(),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Divider(
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 400,
+                            child: StreamBuilder(
+                                stream: _firestore
                                     .collection("Users")
                                     .doc(currentUserId)
                                     .collection("following")
                                     .doc(widget.userid)
-                                    .set({"following": false});
-                              }
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Center();
+                                  }
+                                  if (!snapshot.hasData || snapshot.data!.exists == false) {
+                                    _firestore
+                                        .collection("Users")
+                                        .doc(currentUserId)
+                                        .collection("following")
+                                        .doc(widget.userid)
+                                        .set({"following": false});
+                                    return Center();
+                                  }
 
-                              if (snapshot.hasError) {
-                                return Center();
-                              }
+                                  if (snapshot.hasData) {
+                                    final following = snapshot.data!["following"];
 
-                              if (snapshot.hasData) {
-                                final following = snapshot.data!["following"];
+                                    if (following) {
+                                      followState = true;
+                                    } else {
+                                      followState = false;
+                                    }
 
-                                if (following) {
-                                  followState = true;
-                                } else {
-                                  followState = false;
-                                }
-
-                                return public && !following || following && public || private && following
-                                    ? Padding(
-                                        padding: EdgeInsets.only(left: 5, right: 5),
-                                        child: ElevatedButton.icon(
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue.shade400,
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50))),
-                                          onPressed: () {
-                                            !block
-                                                ? setState(() {
-                                                    // followState = !followState;
-                                                    if (!following) {
-                                                      followUnfollowUser(true);
-                                                    } else if (following) {
-                                                      followUnfollowUser(false);
-                                                      requested = false;
-                                                      request();
-                                                    }
-                                                  })
-                                                : showSnackBar(context, "Unblock ${widget.username} first.");
-                                          },
-                                          icon: Icon(
-                                            following ? Icons.check_circle_outline : Icons.person_add_alt,
-                                            color: Colors.white,
-                                          ),
-                                          label: Text(
-                                            following ? "Following" : "Follow",
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                      )
-                                    : private && !following && !public
-                                        ? Padding(
-                                            padding: EdgeInsets.only(left: 5, right: 5),
-                                            child: ElevatedButton.icon(
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Colors.blue.shade400,
-                                                  shape:
-                                                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(50))),
-                                              onPressed: () {
-                                                !block
-                                                    ? setState(() {
-                                                        requested = !requested;
-                                                        request();
-                                                      })
-                                                    : showSnackBar(context, "Unblock ${widget.username} first.");
-                                              },
-                                              icon: Icon(
-                                                requested ? Icons.check_circle_outline : Icons.person_add_alt,
-                                                color: Colors.white,
+                                    return public && !following || following && public || private && following
+                                        ? Stack(
+                                            children: [
+                                              SizedBox(
+                                                width: MediaQuery.of(context).size.width,
+                                                child: Elvb(
+                                                  onpressed: () {
+                                                    !block
+                                                        ? setState(() {
+                                                            // followState = !followState;
+                                                            if (!following) {
+                                                              followUnfollowUser(true);
+                                                            } else if (following) {
+                                                              followUnfollowUser(false);
+                                                              requested = false;
+                                                              request();
+                                                            }
+                                                          })
+                                                        : showSnackBar(context, "Unblock ${widget.username} first.");
+                                                  },
+                                                  name: following ? "Following" : "Follow",
+                                                  foregroundcolor: Colors.white,
+                                                  backgroundcolor: Colors.blue.shade400,
+                                                ),
                                               ),
-                                              label: Text(
-                                                requested ? "Requested" : "Follow",
-                                                style: TextStyle(color: Colors.white),
+                                              Positioned(
+                                                top: 20,
+                                                left: following ? 148 : 158,
+                                                child: Icon(
+                                                  following
+                                                      ? Icons.check_circle_outline
+                                                      : Icons.person_add_alt_1_outlined,
+                                                  color: Colors.white,
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                           )
-                                        : SizedBox();
-                              }
-                              return SizedBox();
-                            }),
-                      )
-                    ],
-                  );
+                                        : private && !following && !public
+                                            ? Stack(
+                                                children: [
+                                                  SizedBox(
+                                                    width: MediaQuery.of(context).size.width,
+                                                    child: Elvb(
+                                                      onpressed: () {
+                                                        !block
+                                                            ? setState(() {
+                                                                requested = !requested;
+                                                                request();
+                                                              })
+                                                            : showSnackBar(
+                                                                context, "Unblock ${widget.username} first.");
+                                                      },
+                                                      name: requested ? "Requested" : "Request",
+                                                      foregroundcolor: Colors.white,
+                                                      backgroundcolor: Colors.blue.shade400,
+                                                    ),
+                                                  ),
+                                                  Positioned(
+                                                    top: 20,
+                                                    left: requested ? 145 : 152,
+                                                    child: Icon(
+                                                      requested
+                                                          ? Icons.check_circle_outline
+                                                          : Icons.person_add_alt_1_outlined,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Center();
+                                  }
+                                  return SizedBox();
+                                }),
+                          )
+                        ],
+                      );
+                    });
           }),
     );
   }

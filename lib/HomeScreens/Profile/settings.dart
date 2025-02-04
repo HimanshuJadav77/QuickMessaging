@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/Profile/blockeduserlist.dart';
@@ -43,9 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
           },
           icon: Icon(Icons.arrow_back_ios_new),
         ),
-        title: Text('Settings',
-            style: TextStyle(
-                color: Colors.blue, fontSize: 22, fontWeight: FontWeight.bold)),
+        title: Text('Settings', style: TextStyle(color: Colors.blue, fontSize: 22, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         children: [
@@ -62,53 +62,50 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: CircularProgressIndicator(),
                   );
                 }
-                if (!snapshot.hasData && !snapshot.data!.exists) {
+                if (!snapshot.hasData || snapshot.data!.exists == false) {
                   FirebaseFirestore.instance
                       .collection("Users")
                       .doc(currentUserId)
                       .collection("privacy")
                       .doc("mode")
                       .set({"privacy": "public"});
+                  return Center();
                 }
-                if (snapshot.hasData) {
-                  final privacy = snapshot.data!["privacy"];
-                  return Column(
-                    children: [
-                      Align(
-                          alignment: Alignment.topLeft,
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 15.0, top: 10.0),
-                            child: Text(
-                              "Privacy",
-                              style:
-                                  TextStyle(color: Colors.blue, fontSize: 18),
-                            ),
-                          )),
-                      RadioListTile(
-                        title: Text("Public"),
-                        value: "public",
-                        groupValue: privacy,
-                        onChanged: (value) {
-                          if (value != null) {
-                            _showConfirmationDialog(value);
-                          }
-                        },
-                      ),
-                      RadioListTile(
-                        title: Text("Private"),
-                        value: "private",
-                        groupValue: privacy,
-                        onChanged: (value) {
-                          if (value != null) {
-                            _showConfirmationDialog(value);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                }
-                return Center();
+
+                final privacy = snapshot.data?.data()?["privacy"];
+                return Column(
+                  children: [
+                    Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 15.0, top: 10.0),
+                          child: Text(
+                            "Privacy",
+                            style: TextStyle(color: Colors.blue, fontSize: 18),
+                          ),
+                        )),
+                    RadioListTile(
+                      title: Text("Public"),
+                      value: "public",
+                      groupValue: privacy,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _showConfirmationDialog(value);
+                        }
+                      },
+                    ),
+                    RadioListTile(
+                      title: Text("Private"),
+                      value: "private",
+                      groupValue: privacy,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _showConfirmationDialog(value);
+                        }
+                      },
+                    ),
+                  ],
+                );
               }),
           Divider(),
           ListTile(

@@ -12,6 +12,7 @@ import 'package:quickmsg/HomeScreens/updates.dart';
 import 'package:quickmsg/Logins/logreg.dart';
 
 import '../Logins/showdialogs.dart';
+import '../networkcheck.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +32,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     requestPermissions();
     onlineState();
+    getUserEmailVerifiedOrNot();
+    NetworkCheck().initializeInternetStatus(context);
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  getUserEmailVerifiedOrNot() {
+    bool verified = FirebaseAuth.instance.currentUser!.emailVerified;
+    if (verified == true) {
+    } else if (verified == false) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LogReg(),
+        ),
+        (Route<dynamic> route) => false, // This removes all previous routes
+      );
+    }
   }
 
   @override
@@ -48,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     super.dispose();
-
+    NetworkCheck().cancelSubscription();
     WidgetsBinding.instance.removeObserver(this);
   }
 
@@ -104,16 +121,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       return Stack(
                         children: [
                           Positioned(
-                            top: 50,
-                            left: 5,
+                            top: 10,
+                            left: 10,
                             child: CircleAvatar(
-                              radius: 50,
+                              radius: 60,
                               child: ClipOval(
                                 child: Image.network(
                                   errorBuilder: (context, error, stackTrace) {
                                     return CircularProgressIndicator();
                                   },
                                   width: 120,
+                                  height: MediaQuery.of(context).size.height,
                                   fit: BoxFit.cover,
                                   imageurl,
                                   filterQuality: FilterQuality.high,
@@ -122,16 +140,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                           ),
                           Positioned(
-                            top: 80,
-                            left: 110,
+                            bottom: 20,
+                            right: 10,
                             child: Text(
                               username,
                               style: TextStyle(color: Colors.white, fontSize: 22),
                             ),
                           ),
                           Positioned(
-                            top: 110,
-                            left: 110,
+                            bottom: 10,
+                            right: 10,
                             child: Text(
                               email,
                               style: TextStyle(color: Colors.white, fontSize: 12),
@@ -180,9 +198,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
               ListTile(
                 onTap: () {
-                  FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
                   showMessageBox("Logout", "Are You Sure To Logout?", context, "Yes", () {
                     FirebaseAuth.instance.signOut();
+                    FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
@@ -207,14 +225,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         appBar: AppBar(
           title: Text(
-            index ? "Chats" : "Status",
+            index ? "Chats" : "Updates",
             style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
           actions: [
             IconButton(
               tooltip: "Search Users",
               splashColor: Colors.white60,
-              autofocus: true,
               onPressed: () {
                 Navigator.push(
                     context,
@@ -244,9 +261,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           style: TextStyle(color: Colors.red),
                         ),
                         onTap: () {
-                          FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
                           showMessageBox("Logout", "Are You Sure To Logout?", context, "Yes", () {
                             FirebaseAuth.instance.signOut();
+                            FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(

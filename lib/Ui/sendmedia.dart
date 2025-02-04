@@ -54,20 +54,17 @@ class SendMedia extends StatelessWidget {
             children: [
               fileImage != null && fileType == "Image"
                   ? Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Image.file(
-                            filterQuality: FilterQuality.high,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(child: CircularProgressIndicator());
-                            },
-                            fileImage,
-                            height: Image.file(fileImage).height,
-                            width: Image.file(fileImage).width,
-                          ),
+                      padding: const EdgeInsets.all(4.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.file(
+                          filterQuality: FilterQuality.high,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(child: CircularProgressIndicator());
+                          },
+                          fileImage,
+                          height: Image.file(fileImage).height,
+                          width: Image.file(fileImage).width,
                         ),
                       ),
                     )

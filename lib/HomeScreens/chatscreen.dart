@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -124,6 +126,62 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  setFollowFollowing() async {
+    final myfollower = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .collection("followers")
+        .doc(widget.userid)
+        .get();
+    final myfollowing = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentUserId)
+        .collection("following")
+        .doc(widget.userid)
+        .get();
+    final userfollower = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(widget.userid)
+        .collection("followers")
+        .doc(currentUserId)
+        .get();
+    final userfollowing = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(widget.userid)
+        .collection("following")
+        .doc(currentUserId)
+        .get();
+    if (myfollower.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(currentUserId)
+          .collection("followers")
+          .doc(widget.userid)
+          .set({"follower": false});
+    } else if (myfollowing.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(currentUserId)
+          .collection("following")
+          .doc(widget.userid)
+          .set({"following": false});
+    } else if (userfollowing.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(widget.userid)
+          .collection("following")
+          .doc(currentUserId)
+          .set({"following": false});
+    } else if (userfollower.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(widget.userid)
+          .collection("followers")
+          .doc(currentUserId)
+          .set({"follower": false});
+    }
+  }
+
   blockUser(blockUserid) async {
     if (blocked) {
       await FirebaseFirestore.instance
@@ -191,7 +249,26 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     checkBlockedOrNot(widget.userid);
+    blockedByUserOrNot();
+    setFollowFollowing();
     NetworkCheck().initializeInternetStatus(context);
+  }
+
+  blockedByUserOrNot() async {
+    final getBlockState = await FirebaseFirestore.instance
+        .collection("block")
+        .doc(widget.userid)
+        .collection("blockedid")
+        .doc(currentUserId)
+        .get();
+    if (getBlockState.exists == false) {
+      await FirebaseFirestore.instance
+          .collection("block")
+          .doc(widget.userid)
+          .collection("blockedid")
+          .doc(currentUserId)
+          .set({"blocked": false});
+    }
   }
 
   @override
@@ -326,8 +403,12 @@ class _ChatScreenState extends State<ChatScreen> {
       } on FirebaseException catch (e) {
         if (mounted) showCustomDialog("SendError", "Error: $e", context);
       }
+      setState(() {
+        loading = false;
+        pickedImage = null;
+      });
     } else {
-      for (var image in pickedImages) {
+      for (var image in pickedImages.toList()) {
         Random random = Random();
         final docname = random.nextInt(1000000).toString();
 
@@ -364,13 +445,12 @@ class _ChatScreenState extends State<ChatScreen> {
         } on FirebaseException catch (e) {
           if (mounted) showCustomDialog("SendError", "Error: $e", context);
         }
+        setState(() {
+          loading = false;
+          pickedImages.clear();
+        });
       }
     }
-    setState(() {
-      loading = false;
-      pickedImage == null;
-      pickedImages.clear();
-    });
   }
 
   void sendMessage(String message, sender, receiver) async {
@@ -515,7 +595,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     if (senderList.contains(widget.userid)) {
-      //if (senderList.contains(widget.userid)) {
       if (mounted) {
         showMessageBox(
           "Deletion",
@@ -528,7 +607,6 @@ class _ChatScreenState extends State<ChatScreen> {
           },
         );
       }
-      //if (!senderList.contains(widget.userid))
     } else if (!senderList.contains(widget.userid)) {
       if (mounted) {
         showDeleteChatBox(
@@ -587,6 +665,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         .collection("blockedid")
                         .doc(currentUserId)
                         .get();
+
                     final data = getBlockState.data()?["blocked"].toString();
                     data == "false"
                         ? Navigator.push(
@@ -600,7 +679,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   userid: widget.userid),
                             ),
                           )
-                        : null;
+                        : showCustomDialog("", "${widget.username} has been blocked you.", context);
                   },
                   child: SizedBox(
                     width: 250,
@@ -611,6 +690,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: ClipOval(
                               child: Image.network(
                                 width: 55,
+                                height: MediaQuery.of(context).size.height,
                                 fit: BoxFit.cover,
                                 widget.imageurl,
                                 filterQuality: FilterQuality.high,
@@ -657,76 +737,103 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           actions: [
             IconButton(
-                onPressed: () {
-                  showMenu(
-                    color: Colors.white,
-                    elevation: 10,
-                    shadowColor: Colors.black54,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    context: context,
-                    position: const RelativeRect.fromLTRB(100.0, 20.0, 20.0, 0.0),
-                    // Adjust position as needed
-                    items: [
-                      PopupMenuItem<String>(
-                        child: const Text(
-                          'Clear Chats',
-                        ),
-                        onTap: () {
-                          showMessageBox(
-                            "Deletion",
-                            "Are you sure clear all chat?",
-                            context,
-                            "Delete",
-                            () async {
-                              if (mounted) Navigator.pop(context);
-                              final docs = await firestore
-                                  .doc(currentUserId)
-                                  .collection("save_chat")
-                                  .doc(widget.userid)
-                                  .collection("messages")
-                                  .get();
-                              for (var msg in docs.docs) {
-                                msg.reference.delete();
-                              }
-                            },
-                          );
+                onPressed: () async {
+                  final getBlockState = await FirebaseFirestore.instance
+                      .collection("block")
+                      .doc(widget.userid)
+                      .collection("blockedid")
+                      .doc(currentUserId)
+                      .get();
 
+                  final data = getBlockState.data()?["blocked"].toString();
 
-                        },
-                      ),
-                      PopupMenuItem<String>(
-                        onTap: () {
-                          blocked
-                              ? showMessageBox(
-                                  "Unblock", "Are you want to unblock ${widget.username}", context, "Unblock", () {
-                                  blockUser(widget.userid);
-                                  Navigator.pop(context);
-                                })
-                              : showMessageBox("Block", "Are you sure to block ${widget.username}", context, "Block",
+                  data == "false"
+                      ? showMenu(
+                          color: Colors.white,
+                          elevation: 10,
+                          shadowColor: Colors.black54,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          context: context,
+                          position: const RelativeRect.fromLTRB(100.0, 20.0, 20.0, 0.0),
+                          // Adjust position as needed
+                          items: [
+                            PopupMenuItem<String>(
+                              child: const Text(
+                                'Clear Chats',
+                              ),
+                              onTap: () {
+                                showMessageBox(
+                                  "Deletion",
+                                  "Are you sure clear all chat?",
+                                  context,
+                                  "Delete",
                                   () async {
-                                  blockUser(widget.userid);
-                                  Navigator.pop(context);
-                                });
-                        },
-                        child: StreamBuilder(
-                            stream: FirebaseFirestore.instance
-                                .collection("block")
-                                .doc(currentUserId)
-                                .collection("blockedid")
-                                .doc(widget.userid)
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              final data = snapshot.data;
-                              var block = data?["blocked"].toString();
+                                    if (mounted) Navigator.pop(context);
+                                    final docs = await firestore
+                                        .doc(currentUserId)
+                                        .collection("save_chat")
+                                        .doc(widget.userid)
+                                        .collection("messages")
+                                        .get();
+                                    for (var msg in docs.docs) {
+                                      msg.reference.delete();
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                            PopupMenuItem<String>(
+                              onTap: () {
+                                blocked
+                                    ? showMessageBox(
+                                        "Unblock", "Are you want to unblock ${widget.username}", context, "Unblock",
+                                        () {
+                                        blockUser(widget.userid);
+                                        Navigator.pop(context);
+                                      })
+                                    : showMessageBox(
+                                        "Block", "Are you sure to block ${widget.username}", context, "Block",
+                                        () async {
+                                        blockUser(widget.userid);
+                                        Navigator.pop(context);
+                                      });
+                              },
+                              child: StreamBuilder(
+                                  stream: FirebaseFirestore.instance
+                                      .collection("block")
+                                      .doc(currentUserId)
+                                      .collection("blockedid")
+                                      .doc(widget.userid)
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                    if (snapshot.data?.exists == false) {
+                                      FirebaseFirestore.instance
+                                          .collection("block")
+                                          .doc(currentUserId)
+                                          .collection("blockedid")
+                                          .doc(widget.userid)
+                                          .set({"blocked": false});
+                                    }
+                                    if (snapshot.hasData) {
+                                      final data = snapshot.data;
+                                      var block = data!["blocked"].toString();
 
-                              return Text(
-                                block == "true" ? "Unblock" : 'Block',
-                                style: TextStyle(color: Colors.red),
-                              );
-                            }),
-                      ),
-                    ],
-                  );
+                                      return Text(
+                                        block == "true" ? "Unblock" : 'Block',
+                                        style: TextStyle(color: Colors.red),
+                                      );
+                                    }
+                                    return Center();
+                                  }),
+                            )
+                          ],
+                        )
+                      : null;
                 },
                 icon: const Icon(Icons.more_vert_outlined))
           ],
@@ -920,7 +1027,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                 final extension = messageData["extension"];
                                 final fileUrl = messageData["fileurl"];
                                 final id = messageData.id;
-
+                                Directory filepath =
+                                    Directory('/storage/emulated/0/Download/Quickmsg/Files/$id$extension');
+                                File file = File(filepath.path);
                                 return InkWell(
                                   key: inkwell,
                                   onLongPress: () {
@@ -933,11 +1042,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                       setState(() {
                                         selectedStates[index] = !selectedStates[index];
                                       });
-                                    }
+                                    } else {}
                                   },
                                   child: Container(
                                     color: selectedStates[index] ? Colors.blue.shade100 : Colors.transparent,
                                     child: Receivemedia(
+                                      file: file,
                                       senderId: widget.userid,
                                       fileurl: fileUrl,
                                       fileType: fileType,
@@ -1264,7 +1374,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               });
                                             }
                                           } catch (e) {
-                                            // ignore: use_build_context_synchronously
+
                                             showSnackBar(context, "$e");
                                           }
                                         },
@@ -1285,7 +1395,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                             });
                                           }
                                         } catch (e) {
-                                          // ignore: use_build_context_synchronously
+
                                           showSnackBar(context, "$e");
                                         }
                                       },

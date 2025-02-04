@@ -95,11 +95,12 @@ class _MyProfileState extends State<MyProfile> {
         stream: userData.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+           //
           }
-          if (snapshot.hasData && snapshot.data != null) {
+          if (!snapshot.hasData) {
+            return Center();
+          }
+          if (snapshot.hasData) {
             final data = snapshot.data?.data() as Map<String, dynamic>;
             username = data["username"].toString();
             imageurl = data["userimageurl"].toString();
@@ -196,6 +197,7 @@ class _MyProfileState extends State<MyProfile> {
                                     child: pickedImage != null
                                         ? Image.file(
                                             width: 120,
+                                            height: MediaQuery.of(context).size.height,
                                             fit: BoxFit.cover,
                                             pickedImage!,
                                             filterQuality: FilterQuality.high,
@@ -205,6 +207,7 @@ class _MyProfileState extends State<MyProfile> {
                                               return CircularProgressIndicator();
                                             },
                                             width: 120,
+                                            height: MediaQuery.of(context).size.height,
                                             fit: BoxFit.cover,
                                             imageurl,
                                             filterQuality: FilterQuality.high,

@@ -47,8 +47,23 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text("Quick Messaging"),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 60,
+            width: 60,
+            child: Image.asset(
+              "assets/images/logo.png",
+            ),
+          ),
+          const Text(
+            "Quick Messaging",
+            style: TextStyle(color: Colors.black, fontFamily: "karsyu", fontWeight: FontWeight.bold, fontSize: 20),
+          ),
+        ],
+      ),
     );
   }
 }

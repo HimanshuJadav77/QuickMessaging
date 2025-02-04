@@ -68,13 +68,9 @@ class _FollowedChatListState extends State<FollowedChatList> {
             itemCount: usersList.length,
             itemBuilder: (context, index) {
               return FutureBuilder(
-                  future: FirebaseFirestore.instance
-                      .collection("Users")
-                      .doc(usersList[index].id)
-                      .get(),
+                  future: FirebaseFirestore.instance.collection("Users").doc(usersList[index].id).get(),
                   builder: (context, userSnapshot) {
-                    if (userSnapshot.connectionState ==
-                        ConnectionState.waiting) {
+                    if (userSnapshot.connectionState == ConnectionState.waiting) {
                       return Center(
                         child: CircularProgressIndicator(),
                       );
@@ -95,7 +91,7 @@ class _FollowedChatListState extends State<FollowedChatList> {
                             ));
                       },
                       child: CustomCard(
-                        subtitle: Center(),
+                        subtitle: null,
                         color: Colors.white,
                         username: userData["username"],
                         imageurl: userData["userimageurl"],

@@ -1,7 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:quickmsg/HomeScreens/chatscreen.dart';
 import 'package:quickmsg/Logins/showdialogs.dart';
 import 'package:quickmsg/Ui/customcard.dart';
@@ -44,6 +45,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
             msg.reference.delete();
           }
         }
+        selectedUserList.clear();
         Navigator.pop(context);
       },
     );
@@ -54,16 +56,15 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
     return StreamBuilder(
         stream: usersList.where("chat", isEqualTo: true).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+          if (streamSnapshot.connectionState == ConnectionState.waiting) {
+           return Center();
+          }
+
           if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
             return Center(
               child: Text("No Users Available For Chat."),
             );
           }
-          // if (streamSnapshot.connectionState == ConnectionState.waiting) {
-          //   return Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          // }
 
           final List<DocumentSnapshot> users = streamSnapshot.data!.docs.toList();
           if (selectedStates.length != users.length) {
@@ -86,7 +87,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                 AnimatedContainer(
                   curve: Curves.linear,
                   height: selectedStates.contains(true) ? 50 : 0,
-                  duration: Duration(milliseconds: 200),
+                  duration: Duration(milliseconds: 300),
                   child: AppBar(
                     leading: IconButton(
                         tooltip: "Cancel",
@@ -185,7 +186,7 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                                   return Center();
                                                 }
                                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  //
+                                                  return Center();
                                                 }
                                                 if (snapshot.hasData) {
                                                   final data = snapshot.data!.docs.toList();
@@ -214,24 +215,26 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                                     return Center();
                                                   }
                                                   if (snapshot.connectionState == ConnectionState.waiting) {
-                                                    //
+                                                    return Center();
                                                   }
 
-                                                  final data = snapshot.data!.docs.toList();
-                                                  final message = data.last.data()["message"];
-                                                  var senderId = data.last.data()["sender"];
+                                                  if (snapshot.hasData) {
+                                                    final data = snapshot.data!.docs.toList();
+                                                    final message = data.last.data()["message"];
+                                                    var senderId = data.last.data()["sender"];
 
-                                                  if (messageCount > 1) {
-                                                    return Text("$messageCount new messages");
-                                                  } else if (messageCount == 1) {
-                                                    return Text("1 new message");
-                                                  } else if (messageCount == 0) {
-                                                    if (message == currentUserId || message == userData["userid"]) {
-                                                      final filename = data.last.id + data.last.data()["extension"];
-                                                      return Text(filename);
-                                                    } else if (senderId == currentUserId ||
-                                                        senderId == userData["userid"]) {
-                                                      return Text(message);
+                                                    if (messageCount > 1) {
+                                                      return Text("$messageCount new messages");
+                                                    } else if (messageCount == 1) {
+                                                      return Text("1 new message");
+                                                    } else if (messageCount == 0) {
+                                                      if (message == currentUserId || message == userData["userid"]) {
+                                                        final filename = data.last.id + data.last.data()["extension"];
+                                                        return Text(filename);
+                                                      } else if (senderId == currentUserId ||
+                                                          senderId == userData["userid"]) {
+                                                        return Text(message);
+                                                      }
                                                     }
                                                   }
 
@@ -243,8 +246,8 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                             color: selectedStates[index] ? Colors.blue.shade50 : Colors.white,
                                           ),
                                           Positioned(
-                                            left: 65,
-                                            bottom: 15,
+                                            left: 70,
+                                            bottom: 20,
                                             child: StreamBuilder(
                                                 stream: firestore.doc(userData["userid"]).snapshots(),
                                                 builder: (context, snapshot) {
@@ -266,8 +269,8 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                           ),
                                           selectedStates[index]
                                               ? Positioned(
-                                                  left: 55,
-                                                  bottom: 10,
+                                                  left: 65,
+                                                  bottom: 15,
                                                   child: CircleAvatar(
                                                     radius: 12,
                                                     backgroundColor: Colors.black,

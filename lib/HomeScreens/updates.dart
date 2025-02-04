@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:quickmsg/HomeScreens/chathome.dart';
@@ -42,31 +44,24 @@ class _UpdatesState extends State<Updates> {
                     itemCount: followerList.length,
                     itemBuilder: (context, index) {
                       return StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection("Users")
-                            .doc(followerList[index].id)
-                            .snapshots(),
+                        stream: FirebaseFirestore.instance.collection("Users").doc(followerList[index].id).snapshots(),
                         builder: (context, uSnapshot) {
                           if (!uSnapshot.hasData) {
                             return Center();
                           }
-                          if (uSnapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (uSnapshot.connectionState == ConnectionState.waiting) {
                             return Center();
                           }
                           final userData = uSnapshot.data;
                           return ListTile(
                               leading: ClipOval(
                                 child: CircleAvatar(
-                                  backgroundImage:
-                                      NetworkImage(userData?["userimageurl"]),
+                                  backgroundImage: NetworkImage(userData?["userimageurl"]),
                                 ),
                               ),
                               title: Text(
                                 "${userData?["username"]}",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold),
+                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(
                                 "is started follow you.",
@@ -93,9 +88,7 @@ class _UpdatesState extends State<Updates> {
                   return Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData) {
-                  return Center(
-                    child: Text("No Updates Are Available"),
-                  );
+                  return Center();
                 }
 
                 final updatesList = snapshot.data!.docs.toList();
@@ -107,33 +100,25 @@ class _UpdatesState extends State<Updates> {
                       final update = updatesList[index];
 
                       return StreamBuilder(
-                          stream: FirebaseFirestore.instance
-                              .collection("Users")
-                              .doc(update.id)
-                              .snapshots(),
+                          stream: FirebaseFirestore.instance.collection("Users").doc(update.id).snapshots(),
                           builder: (context, uSnapshot) {
-                            if (uSnapshot.connectionState ==
-                                ConnectionState.waiting) {
+                            if (uSnapshot.connectionState == ConnectionState.waiting) {
                               return Center(
                                 child: CircularProgressIndicator(),
                               );
                             }
-                            if (!uSnapshot.hasData &&
-                                uSnapshot.data!.data()!.isEmpty) {}
+                            if (!uSnapshot.hasData && uSnapshot.data!.data()!.isEmpty) {}
                             final userData = uSnapshot.data!.data();
 
                             return ListTile(
                                 leading: ClipOval(
                                   child: CircleAvatar(
-                                    backgroundImage:
-                                        NetworkImage(userData?["userimageurl"]),
+                                    backgroundImage: NetworkImage(userData?["userimageurl"]),
                                   ),
                                 ),
                                 title: Text(
                                   "${userData?["username"]}",
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
+                                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text(
                                   "is requested for follow you.",
@@ -152,67 +137,44 @@ class _UpdatesState extends State<Updates> {
                                           .doc(update.id)
                                           .snapshots(),
                                       builder: (context, fSnapshot) {
-                                        if (fSnapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                              child:
-                                                  CircularProgressIndicator());
+                                        if (fSnapshot.connectionState == ConnectionState.waiting) {
+                                          return Center(child: CircularProgressIndicator());
                                         }
-                                        if (!fSnapshot.data!.exists ||
-                                            fSnapshot.data!.exists) {
-                                          return fSnapshot.data!.exists &&
-                                                  fSnapshot.data?["follower"] ==
-                                                      true
+                                        if (!fSnapshot.data!.exists || fSnapshot.data!.exists) {
+                                          return fSnapshot.data!.exists && fSnapshot.data?["follower"] == true
                                               ? Center(
                                                   child: Text(
                                                     "Accepted",
-                                                    style: TextStyle(
-                                                        fontSize: 15,
-                                                        color: Colors.blue),
+                                                    style: TextStyle(fontSize: 15, color: Colors.blue),
                                                   ),
                                                 )
                                               : Elvb(
                                                   onpressed: () {
-                                                    if (!fSnapshot
-                                                            .data!.exists ||
-                                                        fSnapshot
-                                                                .data!.exists &&
-                                                            fSnapshot.data?[
-                                                                    "follower"] ==
-                                                                false) {
+                                                    if (!fSnapshot.data!.exists ||
+                                                        fSnapshot.data!.exists &&
+                                                            fSnapshot.data?["follower"] == false) {
                                                       showMessageBox(
                                                           "User Request",
                                                           "Are you sure want to accept ${userData?["username"]}'s request? ",
                                                           context,
                                                           "Confirm", () async {
-                                                        await FirebaseFirestore
-                                                            .instance
+                                                        await FirebaseFirestore.instance
                                                             .collection("Users")
                                                             .doc(currentUserId)
-                                                            .collection(
-                                                                "followers")
+                                                            .collection("followers")
                                                             .doc(update.id)
-                                                            .set({
-                                                          "follower": true
-                                                        });
+                                                            .set({"follower": true});
 
-                                                        await FirebaseFirestore
-                                                            .instance
+                                                        await FirebaseFirestore.instance
                                                             .collection("Users")
                                                             .doc(update.id)
-                                                            .collection(
-                                                                "following")
+                                                            .collection("following")
                                                             .doc(currentUserId)
-                                                            .set({
-                                                          "following": true
-                                                        });
+                                                            .set({"following": true});
                                                         Navigator.pop(context);
                                                       });
-                                                    } else if (fSnapshot
-                                                            .data!.exists &&
-                                                        fSnapshot.data?[
-                                                                "follower"] ==
-                                                            true) {}
+                                                    } else if (fSnapshot.data!.exists &&
+                                                        fSnapshot.data?["follower"] == true) {}
                                                   },
                                                   name: "Accept",
                                                   foregroundcolor: Colors.white,
@@ -225,9 +187,7 @@ class _UpdatesState extends State<Updates> {
                     },
                   );
                 } else {
-                  return Center(
-                    child: Text("No Updates Are Available."),
-                  );
+                  return Center(child: Text("No any other updates available"),);
                 }
               },
             ),
