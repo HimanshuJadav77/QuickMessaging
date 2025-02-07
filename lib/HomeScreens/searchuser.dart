@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
-import 'package:quickmsg/networkcheck.dart';
+import 'package:TriDot/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:TriDot/networkcheck.dart';
 import '../Ui/customcard.dart';
 
 class SearchUser extends StatefulWidget {

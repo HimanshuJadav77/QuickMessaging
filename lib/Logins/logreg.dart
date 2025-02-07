@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:quickmsg/Logins/register.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/Ui/elvb.dart';
-import 'package:quickmsg/networkcheck.dart';
+import 'package:TriDot/Logins/register.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/Ui/elvb.dart';
+import 'package:TriDot/networkcheck.dart';
 import 'login.dart';
 
 class LogReg extends StatefulWidget {
@@ -71,7 +71,7 @@ class _LogRegState extends State<LogReg> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: const Text(
-                    "Quick Messaging",
+                    "Tridot Messenger",
                     style: TextStyle(fontSize: 25, color: Colors.white, fontFamily: "karsyu"),
                   ),
                 )
@@ -81,7 +81,7 @@ class _LogRegState extends State<LogReg> {
               padding: EdgeInsets.all(8.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "QuickMessaging for Communicate with your friend and send messages to friends.",
+                "TriDot for Communicate with your friend and send messages to friends.",
                 style: TextStyle(fontSize: 17, color: Colors.white),
               ),
             ),

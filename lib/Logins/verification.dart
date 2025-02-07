@@ -3,8 +3,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/Logins/logreg.dart';
-import 'package:quickmsg/Ui/elvb.dart';
+import 'package:TriDot/Logins/logreg.dart';
+import 'package:TriDot/Ui/elvb.dart';
 
 import '../HomeScreens/home.dart';
 
@@ -25,8 +25,7 @@ class _VerificationState extends State<Verification> {
   void initState() {
     super.initState();
     sendEmailVerification();
-
-    timer = Timer.periodic(const Duration(seconds: 2), (timer) => checkUserVerified());
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) => checkUserVerified());
   }
 
   @override

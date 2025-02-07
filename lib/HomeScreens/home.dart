@@ -3,13 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:quickmsg/HomeScreens/Profile/myprofile.dart';
-import 'package:quickmsg/HomeScreens/Profile/settings.dart';
-import 'package:quickmsg/HomeScreens/chathome.dart';
-import 'package:quickmsg/HomeScreens/followedchatlist.dart';
-import 'package:quickmsg/HomeScreens/searchuser.dart';
-import 'package:quickmsg/HomeScreens/updates.dart';
-import 'package:quickmsg/Logins/logreg.dart';
+import 'package:TriDot/HomeScreens/Profile/myprofile.dart';
+import 'package:TriDot/HomeScreens/Profile/settings.dart';
+import 'package:TriDot/HomeScreens/chathome.dart';
+import 'package:TriDot/HomeScreens/followedchatlist.dart';
+import 'package:TriDot/HomeScreens/searchuser.dart';
+import 'package:TriDot/HomeScreens/updates.dart';
+import 'package:TriDot/Logins/logreg.dart';
 
 import '../Logins/showdialogs.dart';
 import '../networkcheck.dart';
@@ -21,6 +21,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+String currentUserId = "";
+
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool index = false;
   GlobalKey<ScaffoldState> drawerController = GlobalKey<ScaffoldState>();
@@ -30,6 +32,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    setState(() {
+      currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    });
     requestPermissions();
     onlineState();
     getUserEmailVerifiedOrNot();
@@ -54,10 +59,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      // App is in the background, set the user status to offline
       FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
     } else if (state == AppLifecycleState.resumed) {
-      // App is in the foreground, set the user status to online
       onlineState();
     }
   }
@@ -199,15 +202,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ListTile(
                 onTap: () {
                   showMessageBox("Logout", "Are You Sure To Logout?", context, "Yes", () {
-                    FirebaseAuth.instance.signOut();
-                    FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LogReg(),
-                      ),
-                      (Route<dynamic> route) => false, // This removes all previous routes
-                    );
+                    if (mounted) {
+                      FirebaseAuth.instance.signOut();
+                      FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
+                      Navigator.pop(context);
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LogReg(),
+                          ),
+                          (Route<dynamic> route) => false);
+                    }
                   });
                 },
                 leading: Icon(
@@ -262,15 +267,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         onTap: () {
                           showMessageBox("Logout", "Are You Sure To Logout?", context, "Yes", () {
-                            FirebaseAuth.instance.signOut();
-                            FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LogReg(),
-                              ),
-                              (Route<dynamic> route) => false, // This removes all previous routes
-                            );
+                            if (mounted) {
+                              FirebaseAuth.instance.signOut();
+                              FirebaseFirestore.instance
+                                  .collection("Users")
+                                  .doc(currentUserId)
+                                  .update({"online": false});
+                              Navigator.pop(context);
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LogReg(),
+                                ),
+                                (Route<dynamic> route) => false, // This removes all previous routes
+                              );
+                            }
                           });
                         },
                       ),

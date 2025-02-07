@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:quickmsg/Logins/logreg.dart';
+import 'package:TriDot/Logins/logreg.dart';
 
 import 'home.dart';
 
@@ -59,7 +59,7 @@ class _SplashState extends State<Splash> {
             ),
           ),
           const Text(
-            "Quick Messaging",
+            "Tridot Messenger",
             style: TextStyle(color: Colors.black, fontFamily: "karsyu", fontWeight: FontWeight.bold, fontSize: 20),
           ),
         ],

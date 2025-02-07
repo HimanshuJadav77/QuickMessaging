@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/chathome.dart';
-import 'package:quickmsg/HomeScreens/chatscreen.dart';
-import 'package:quickmsg/HomeScreens/searchuser.dart';
-import 'package:quickmsg/Ui/customcard.dart';
-import 'package:quickmsg/Ui/elvb.dart';
+import 'package:TriDot/HomeScreens/chatscreen.dart';
+import 'package:TriDot/HomeScreens/searchuser.dart';
+import 'package:TriDot/Ui/customcard.dart';
+import 'package:TriDot/Ui/elvb.dart';
+
+import 'home.dart';
 
 class FollowedChatList extends StatefulWidget {
   const FollowedChatList({super.key});
@@ -77,7 +78,13 @@ class _FollowedChatListState extends State<FollowedChatList> {
                     }
                     final userData = userSnapshot.data!;
                     return InkWell(
-                      onTap: () {
+                      onTap: () async {
+                        await FirebaseFirestore.instance
+                            .collection("Users")
+                            .doc(currentUserId)
+                            .collection("chats")
+                            .doc(userData["userid"])
+                            .set({"chat": true, "time": FieldValue.serverTimestamp()});
                         Navigator.push(
                             context,
                             MaterialPageRoute(

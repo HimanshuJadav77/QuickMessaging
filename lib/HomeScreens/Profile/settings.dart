@@ -2,9 +2,10 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/Profile/blockeduserlist.dart';
-import 'package:quickmsg/HomeScreens/chathome.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
+import 'package:TriDot/HomeScreens/Profile/blockeduserlist.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+
+import '../home.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

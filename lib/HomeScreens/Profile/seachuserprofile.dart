@@ -6,10 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/Profile/followfollowing.dart';
-import 'package:quickmsg/HomeScreens/chatscreen.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/Ui/snackbar.dart';
+import 'package:TriDot/HomeScreens/Profile/followfollowing.dart';
+import 'package:TriDot/HomeScreens/chatscreen.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/Ui/snackbar.dart';
 
 import '../../Ui/elvb.dart';
 

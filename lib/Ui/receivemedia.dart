@@ -3,10 +3,10 @@
 
 import 'dart:io';
 
+import 'package:TriDot/Ui/snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
-import 'package:quickmsg/Ui/snackbar.dart';
 
 class Receivemedia extends StatefulWidget {
   const Receivemedia({

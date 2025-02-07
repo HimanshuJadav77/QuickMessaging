@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/home.dart';
-import 'package:quickmsg/Logins/forgotpass.dart';
-import 'package:quickmsg/Logins/register.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/networkcheck.dart';
+import 'package:TriDot/HomeScreens/home.dart';
+import 'package:TriDot/Logins/forgotpass.dart';
+import 'package:TriDot/Logins/register.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/networkcheck.dart';
 import '../Ui/elvb.dart';
 import '../Ui/snackbar.dart';
 

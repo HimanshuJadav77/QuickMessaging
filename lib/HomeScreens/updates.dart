@@ -2,9 +2,10 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/chathome.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/Ui/elvb.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/Ui/elvb.dart';
+
+import 'home.dart';
 
 class Updates extends StatefulWidget {
   const Updates({super.key});

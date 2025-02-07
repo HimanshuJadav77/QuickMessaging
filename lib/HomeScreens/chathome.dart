@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quickmsg/HomeScreens/chatscreen.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/Ui/customcard.dart';
+import 'package:TriDot/HomeScreens/chatscreen.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/Ui/customcard.dart';
+
+import 'home.dart';
 
 class ChatHome extends StatefulWidget {
   const ChatHome({super.key});
@@ -14,20 +15,23 @@ class ChatHome extends StatefulWidget {
   State<ChatHome> createState() => _ChatHomeState();
 }
 
-final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-final CollectionReference usersList =
-    FirebaseFirestore.instance.collection("Users").doc(currentUserId).collection("chats");
-
-class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
+class _ChatHomeState extends State<ChatHome> {
   List<bool> selectedStates = [];
   int indexSelected = 0;
   List<dynamic> selectedUserList = [];
   var messageCount = 0;
   final firestore = FirebaseFirestore.instance.collection("Users");
 
+  final usersList = FirebaseFirestore.instance.collection("Users").doc(currentUserId).collection("chats");
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   deleteChat(selectedUserList) async {
@@ -54,10 +58,10 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: usersList.where("chat", isEqualTo: true).snapshots(),
+        stream: usersList.orderBy("time", descending: true).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
           if (streamSnapshot.connectionState == ConnectionState.waiting) {
-           return Center();
+            return Center();
           }
 
           if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
@@ -66,147 +70,119 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
             );
           }
 
-          final List<DocumentSnapshot> users = streamSnapshot.data!.docs.toList();
-          if (selectedStates.length != users.length) {
-            selectedStates = List.generate(
-              users.length,
-              (index) => false,
-            );
-          }
-          int getSelectedStatesCount() {
-            return selectedStates
-                .where(
-                  (isSelected) => isSelected,
-                )
-                .length;
-          }
+          if (streamSnapshot.hasData) {
+            final List<DocumentSnapshot> users = streamSnapshot.data!.docs.toList();
+            if (selectedStates.length != users.length) {
+              selectedStates = List.generate(
+                users.length,
+                (index) => false,
+              );
+            }
+            int getSelectedStatesCount() {
+              return selectedStates
+                  .where(
+                    (isSelected) => isSelected,
+                  )
+                  .length;
+            }
 
-          return Scaffold(
-            body: Column(
-              children: [
-                AnimatedContainer(
-                  curve: Curves.linear,
-                  height: selectedStates.contains(true) ? 50 : 0,
-                  duration: Duration(milliseconds: 300),
-                  child: AppBar(
-                    leading: IconButton(
-                        tooltip: "Cancel",
-                        onPressed: () {
-                          setState(() {
-                            selectedStates = List.generate(
-                              users.length,
-                              (index) {
-                                return false;
-                              },
-                            );
-                          });
-                        },
-                        icon: Icon(
-                          Icons.cancel,
-                          color: Colors.blue,
-                        )),
-                    title: Text(
-                      "${getSelectedStatesCount()} selected",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    actions: [
-                      IconButton(
-                          tooltip: "Delete Selected Chats",
-                          onPressed: () => deleteChat(selectedUserList),
+            return Scaffold(
+              body: Column(
+                children: [
+                  AnimatedContainer(
+                    curve: Curves.linear,
+                    height: selectedStates.contains(true) ? 50 : 0,
+                    duration: Duration(milliseconds: 300),
+                    child: AppBar(
+                      leading: IconButton(
+                          tooltip: "Cancel",
+                          onPressed: () {
+                            setState(() {
+                              selectedStates = List.generate(
+                                users.length,
+                                (index) {
+                                  return false;
+                                },
+                              );
+                            });
+                          },
                           icon: Icon(
-                            Icons.remove_circle,
-                            color: Colors.red,
-                            size: 25,
-                          ))
-                    ],
+                            Icons.cancel,
+                            color: Colors.blue,
+                          )),
+                      title: Text(
+                        "${getSelectedStatesCount()} selected",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      actions: [
+                        IconButton(
+                            tooltip: "Delete Selected Chats",
+                            onPressed: () => deleteChat(selectedUserList),
+                            icon: Icon(
+                              Icons.remove_circle,
+                              color: Colors.red,
+                              size: 25,
+                            ))
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final DocumentSnapshot user = users[index];
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        final DocumentSnapshot user = users[index];
 
-                      if (selectedStates[index] == true) {
-                        if (!selectedUserList.contains(user.id)) {
-                          selectedUserList.add(user.id);
+                        if (selectedStates[index] == true) {
+                          if (!selectedUserList.contains(user.id)) {
+                            selectedUserList.add(user.id);
+                          }
+                        } else if (selectedStates[index] == false) {
+                          if (selectedUserList.contains(user.id)) {
+                            selectedUserList.remove(user.id);
+                          }
                         }
-                      } else if (selectedStates[index] == false) {
-                        if (selectedUserList.contains(user.id)) {
-                          selectedUserList.remove(user.id);
-                        }
-                      }
 
-                      return FutureBuilder(
-                          future: FirebaseFirestore.instance.collection("Users").doc(user.id).get(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData && snapshot.data != null) {
-                              final userData = snapshot.data!;
+                        return FutureBuilder(
+                            future: FirebaseFirestore.instance.collection("Users").doc(user.id).get(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData && snapshot.data != null) {
+                                final userData = snapshot.data!;
 
-                              return Column(
-                                children: [
-                                  InkWell(
-                                      onLongPress: () {
-                                        setState(() {
-                                          selectedStates[index] = !selectedStates[index];
-                                        });
-                                      },
-                                      onTap: () {
-                                        if (!selectedStates[index] && !selectedStates.contains(true)) {
-                                          Navigator.pushReplacement(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => ChatScreen(
-                                                  imageurl: userData["userimageurl"],
-                                                  username: userData["username"],
-                                                  userid: userData["userid"],
-                                                  about: userData["about"],
-                                                  email: userData["email"],
-                                                ),
-                                              ));
-                                        } else {
+                                return Column(
+                                  children: [
+                                    InkWell(
+                                        onLongPress: () {
                                           setState(() {
                                             selectedStates[index] = !selectedStates[index];
                                           });
-                                        }
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          StreamBuilder(
-                                              stream: FirebaseFirestore.instance
-                                                  .collection("Users")
-                                                  .doc(userData["userid"])
-                                                  .collection("save_chat")
-                                                  .doc(currentUserId)
-                                                  .collection("messages")
-                                                  .orderBy("time")
-                                                  .snapshots(),
-                                              builder: (context, snapshot) {
-                                                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                                                  return Center();
-                                                }
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  return Center();
-                                                }
-                                                if (snapshot.hasData) {
-                                                  final data = snapshot.data!.docs.toList();
-
-                                                  messageCount = data.where(
-                                                    (message) {
-                                                      return message["sender"] == userData["userid"] &&
-                                                          message["messagestate"] == "send";
-                                                    },
-                                                  ).length;
-                                                }
-                                                return SizedBox();
-                                              }),
-                                          CustomCard(
-                                            subtitle: StreamBuilder(
+                                        },
+                                        onTap: () {
+                                          if (!selectedStates[index] && !selectedStates.contains(true)) {
+                                            Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ChatScreen(
+                                                    imageurl: userData["userimageurl"],
+                                                    username: userData["username"],
+                                                    userid: userData["userid"],
+                                                    about: userData["about"],
+                                                    email: userData["email"],
+                                                  ),
+                                                ));
+                                          } else {
+                                            setState(() {
+                                              selectedStates[index] = !selectedStates[index];
+                                            });
+                                          }
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            StreamBuilder(
                                                 stream: FirebaseFirestore.instance
                                                     .collection("Users")
-                                                    .doc(currentUserId)
-                                                    .collection("save_chat")
                                                     .doc(userData["userid"])
+                                                    .collection("save_chat")
+                                                    .doc(currentUserId)
                                                     .collection("messages")
                                                     .orderBy("time")
                                                     .snapshots(),
@@ -217,83 +193,114 @@ class _ChatHomeState extends State<ChatHome> with TickerProviderStateMixin {
                                                   if (snapshot.connectionState == ConnectionState.waiting) {
                                                     return Center();
                                                   }
-
                                                   if (snapshot.hasData) {
                                                     final data = snapshot.data!.docs.toList();
-                                                    final message = data.last.data()["message"];
-                                                    var senderId = data.last.data()["sender"];
 
-                                                    if (messageCount > 1) {
-                                                      return Text("$messageCount new messages");
-                                                    } else if (messageCount == 1) {
-                                                      return Text("1 new message");
-                                                    } else if (messageCount == 0) {
-                                                      if (message == currentUserId || message == userData["userid"]) {
-                                                        final filename = data.last.id + data.last.data()["extension"];
-                                                        return Text(filename);
-                                                      } else if (senderId == currentUserId ||
-                                                          senderId == userData["userid"]) {
-                                                        return Text(message);
+                                                    messageCount = data.where(
+                                                          (message) {
+                                                        return message["sender"] == userData["userid"] &&
+                                                            message["messagestate"] == "send";
+                                                      },
+                                                    ).length;
+                                                  }
+                                                  return SizedBox();
+                                                }),
+                                            CustomCard(
+                                              subtitle: StreamBuilder(
+                                                  stream: FirebaseFirestore.instance
+                                                      .collection("Users")
+                                                      .doc(currentUserId)
+                                                      .collection("save_chat")
+                                                      .doc(userData["userid"])
+                                                      .collection("messages")
+                                                      .orderBy("time")
+                                                      .snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                                      return Center();
+                                                    }
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      return Center();
+                                                    }
+
+                                                    if (snapshot.hasData) {
+                                                      final data = snapshot.data!.docs.toList();
+                                                      final message = data.last.data()["message"];
+                                                      var senderId = data.last.data()["sender"];
+
+                                                      if (messageCount > 1) {
+                                                        return Text("$messageCount new messages");
+                                                      } else if (messageCount == 1) {
+                                                        return Text("1 new message");
+                                                      } else if (messageCount == 0) {
+                                                        if (message == currentUserId || message == userData["userid"]) {
+                                                          final filename = data.last.id + data.last.data()["extension"];
+                                                          return Text(filename);
+                                                        } else if (senderId == currentUserId ||
+                                                            senderId == userData["userid"]) {
+                                                          return Text(message);
+                                                        }
                                                       }
                                                     }
-                                                  }
 
-                                                  return Center();
-                                                }),
-                                            trailing: Text(""),
-                                            username: userData["username"],
-                                            imageurl: userData["userimageurl"],
-                                            color: selectedStates[index] ? Colors.blue.shade50 : Colors.white,
-                                          ),
-                                          Positioned(
-                                            left: 70,
-                                            bottom: 20,
-                                            child: StreamBuilder(
-                                                stream: firestore.doc(userData["userid"]).snapshots(),
-                                                builder: (context, snapshot) {
-                                                  if (!snapshot.hasData) {}
-                                                  if (snapshot.connectionState == ConnectionState.waiting) {}
-                                                  final snap = snapshot.data?.data();
-                                                  final isOnline = snap?["online"].toString();
+                                                    return Center();
+                                                  }),
+                                              trailing: Text(""),
+                                              username: userData["username"],
+                                              imageurl: userData["userimageurl"],
+                                              color: selectedStates[index] ? Colors.blue.shade50 : Colors.white,
+                                            ),
+                                            Positioned(
+                                              left: 70,
+                                              bottom: 20,
+                                              child: StreamBuilder(
+                                                  stream: firestore.doc(userData["userid"]).snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    if (!snapshot.hasData) {}
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {}
+                                                    final snap = snapshot.data?.data();
+                                                    final isOnline = snap?["online"].toString();
 
-                                                  return SizedBox(
-                                                    height: 13,
-                                                    width: 13,
+                                                    return SizedBox(
+                                                      height: 13,
+                                                      width: 13,
+                                                      child: CircleAvatar(
+                                                        backgroundColor: isOnline == "true"
+                                                            ? Colors.greenAccent.shade400
+                                                            : Colors.transparent,
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+                                            selectedStates[index]
+                                                ? Positioned(
+                                                    left: 65,
+                                                    bottom: 15,
                                                     child: CircleAvatar(
-                                                      backgroundColor: isOnline == "true"
-                                                          ? Colors.greenAccent.shade400
-                                                          : Colors.transparent,
+                                                      radius: 12,
+                                                      backgroundColor: Colors.black,
+                                                      child: Icon(
+                                                        Icons.check_circle_sharp,
+                                                        color: Colors.blueAccent,
+                                                      ),
                                                     ),
-                                                  );
-                                                }),
-                                          ),
-                                          selectedStates[index]
-                                              ? Positioned(
-                                                  left: 65,
-                                                  bottom: 15,
-                                                  child: CircleAvatar(
-                                                    radius: 12,
-                                                    backgroundColor: Colors.black,
-                                                    child: Icon(
-                                                      Icons.check_circle_sharp,
-                                                      color: Colors.blueAccent,
-                                                    ),
-                                                  ),
-                                                )
-                                              : SizedBox.shrink(),
-                                        ],
-                                      )),
-                                ],
-                              );
-                            }
-                            return SizedBox.shrink();
-                          });
-                    },
+                                                  )
+                                                : SizedBox.shrink(),
+                                          ],
+                                        )),
+                                  ],
+                                );
+                              }
+                              return SizedBox.shrink();
+                            });
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          }
+          return Center();
         });
   }
 }

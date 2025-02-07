@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:quickmsg/HomeScreens/splash.dart';
+import 'package:TriDot/HomeScreens/splash.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -24,7 +24,7 @@ class _QuickmsgState extends State<Quickmsg> {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'QuickMessaging',
+        title: '',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,

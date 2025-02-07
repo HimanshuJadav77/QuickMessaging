@@ -11,15 +11,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-import 'package:quickmsg/HomeScreens/Profile/seachuserprofile.dart';
-import 'package:quickmsg/HomeScreens/chathome.dart';
-import 'package:quickmsg/HomeScreens/home.dart';
-import 'package:quickmsg/Logins/showdialogs.dart';
-import 'package:quickmsg/Ui/receivecard.dart';
-import 'package:quickmsg/Ui/receivemedia.dart';
-import 'package:quickmsg/Ui/sendmedia.dart';
-import 'package:quickmsg/Ui/snackbar.dart';
-import 'package:quickmsg/networkcheck.dart';
+import 'package:TriDot/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:TriDot/HomeScreens/home.dart';
+import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:TriDot/Ui/receivecard.dart';
+import 'package:TriDot/Ui/receivemedia.dart';
+import 'package:TriDot/Ui/sendmedia.dart';
+import 'package:TriDot/Ui/snackbar.dart';
+import 'package:TriDot/networkcheck.dart';
 import '../Ui/sendcard.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -50,7 +49,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   Map<String, IconData> iconList = {
     "Audio": Icons.music_note_outlined,
     "Image": Icons.image_outlined,
@@ -125,7 +124,17 @@ class _ChatScreenState extends State<ChatScreen> {
       return 'Unknown Type';
     }
   }
-
+  onlineState() {
+    FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": true});
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
+    } else if (state == AppLifecycleState.resumed) {
+      onlineState();
+    }
+  }
   setFollowFollowing() async {
     final myfollower = await FirebaseFirestore.instance
         .collection("Users")
@@ -251,6 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
     checkBlockedOrNot(widget.userid);
     blockedByUserOrNot();
     setFollowFollowing();
+    WidgetsBinding.instance.addObserver(this);
     NetworkCheck().initializeInternetStatus(context);
   }
 
@@ -275,6 +285,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     super.dispose();
     _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     NetworkCheck().cancelSubscription();
   }
 
@@ -301,7 +312,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void sendFiles(List<PlatformFile> pickedFiles, sender, receiver) async {
     Directory savePath = Directory('/storage/emulated/0/Download');
-    Directory qmsg = Directory("${savePath.path}/Quickmsg");
+    Directory qmsg = Directory("${savePath.path}/TriDot");
     if (!await qmsg.exists()) {
       qmsg.create(recursive: true);
     }
@@ -358,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void sendImage(File? pickedimage, List<XFile?> pickedImages, sender, receiver) async {
     Directory savePath = Directory('/storage/emulated/0/Download');
-    Directory qmsg = Directory("${savePath.path}/Quickmsg");
+    Directory qmsg = Directory("${savePath.path}/TriDot");
     if (!await qmsg.exists()) {
       qmsg.create(recursive: true);
     }
@@ -543,7 +554,7 @@ class _ChatScreenState extends State<ChatScreen> {
           .doc(chatId)
           .get();
       var ext = deleteChat.data()?["extension"];
-      Directory filepath = Directory('/storage/emulated/0/Download/Quickmsg/Files/$chatId$ext');
+      Directory filepath = Directory('/storage/emulated/0/Download/TriDot/Files/$chatId$ext');
       File file = File(filepath.path);
       if (ext != null && await file.exists()) {
         await file.delete();
@@ -944,7 +955,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                                 final id = messageData.id;
                                 Directory filepath =
-                                    Directory('/storage/emulated/0/Download/Quickmsg/Files/$id$extension');
+                                    Directory('/storage/emulated/0/Download/TriDot/Files/$id$extension');
 
                                 File image = File(filepath.path);
                                 return InkWell(
@@ -1028,7 +1039,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 final fileUrl = messageData["fileurl"];
                                 final id = messageData.id;
                                 Directory filepath =
-                                    Directory('/storage/emulated/0/Download/Quickmsg/Files/$id$extension');
+                                    Directory('/storage/emulated/0/Download/TriDot/Files/$id$extension');
                                 File file = File(filepath.path);
                                 return InkWell(
                                   key: inkwell,
