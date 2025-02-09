@@ -9,17 +9,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const Quickmsg());
+  runApp(const TriDotMessenger());
 }
 
-class Quickmsg extends StatefulWidget {
-  const Quickmsg({super.key});
+class TriDotMessenger extends StatefulWidget {
+  const TriDotMessenger({super.key});
 
   @override
-  State<Quickmsg> createState() => _QuickmsgState();
+  State<TriDotMessenger> createState() => _TriDotMessengerState();
 }
 
-class _QuickmsgState extends State<Quickmsg> {
+class _TriDotMessengerState extends State<TriDotMessenger> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

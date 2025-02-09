@@ -86,7 +86,7 @@ class _ReceivemediaState extends State<Receivemedia> {
   }
 
   checkFileExist() async {
-    String filepath = '/storage/emulated/0/Download/Quickmsg/Files/${widget.filename}';
+    String filepath = '/storage/emulated/0/Download/TriDot/Files/${widget.filename}';
     bool exist = false;
 
     exist = await File(filepath).exists();
@@ -100,7 +100,7 @@ class _ReceivemediaState extends State<Receivemedia> {
   @override
   Widget build(BuildContext context) {
     final inkwell = GlobalKey();
-    Directory filepath = Directory('/storage/emulated/0/Download/Quickmsg/Files/${widget.filename}');
+    Directory filepath = Directory('/storage/emulated/0/Download/TriDot/Files/${widget.filename}');
 
     return Align(
       alignment: Alignment.topLeft,
@@ -139,7 +139,7 @@ class _ReceivemediaState extends State<Receivemedia> {
                       ),
                       onTap: () async {
                         Directory filepath =
-                            Directory('/storage/emulated/0/Download/Quickmsg/Files/${widget.filename}');
+                            Directory('/storage/emulated/0/Download/TriDot/Files/${widget.filename}');
 
                         if (widget.fileType == "Compressed File") {
                           showSnackBar(context, "Go to Downloads In App folder for Compressed Files.");

@@ -49,7 +49,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Map<String, IconData> iconList = {
     "Audio": Icons.music_note_outlined,
     "Image": Icons.image_outlined,
@@ -68,7 +68,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   final userid = FirebaseAuth.instance.currentUser!.uid;
   bool blocked = false;
   final ScrollController _scrollController = ScrollController();
-  List<dynamic> selectedChatList = [];
+
+  Map<String, String> selectedChatMap = {};
   List<bool> selectedStates = [];
 
   String getFileType(String? extension) {
@@ -124,17 +125,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
       return 'Unknown Type';
     }
   }
-  onlineState() {
-    FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": true});
-  }
+
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
+      await FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
     } else if (state == AppLifecycleState.resumed) {
-      onlineState();
+      await FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": true});
     }
   }
+
   setFollowFollowing() async {
     final myfollower = await FirebaseFirestore.instance
         .collection("Users")
@@ -522,88 +522,71 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
   }
 
   deleteUserChat(msgList) async {
-    for (var chatId in msgList) {
-      final chat = await firestore
-          .doc(widget.userid)
-          .collection("save_chat")
-          .doc(currentUserId)
-          .collection("messages")
-          .doc(chatId)
-          .get();
-      if (chat.exists) {
-        await firestore
+    try {
+      for (var chatId in msgList) {
+        final chat = await firestore
             .doc(widget.userid)
             .collection("save_chat")
             .doc(currentUserId)
             .collection("messages")
             .doc(chatId)
-            .delete();
-      } else {
-        //
+            .get();
+        if (chat.exists) {
+          await firestore
+              .doc(widget.userid)
+              .collection("save_chat")
+              .doc(currentUserId)
+              .collection("messages")
+              .doc(chatId)
+              .delete();
+        }
       }
+    } on FirebaseException catch (ex) {
+      showSnackBar(context, ex.toString());
     }
   }
 
   deleteOwnChat(msgList) async {
-    for (var chatId in msgList) {
-      final deleteChat = await firestore
-          .doc(currentUserId)
-          .collection("save_chat")
-          .doc(widget.userid)
-          .collection("messages")
-          .doc(chatId)
-          .get();
-      var ext = deleteChat.data()?["extension"];
-      Directory filepath = Directory('/storage/emulated/0/Download/TriDot/Files/$chatId$ext');
-      File file = File(filepath.path);
-      if (ext != null && await file.exists()) {
-        await file.delete();
-        await firestore
-            .doc(currentUserId)
-            .collection("save_chat")
-            .doc(widget.userid)
-            .collection("messages")
-            .doc(chatId)
-            .delete();
-        mounted ? showSnackBar(context, "Deleted $chatId$ext") : null;
-      } else {
-        await firestore
-            .doc(currentUserId)
-            .collection("save_chat")
-            .doc(widget.userid)
-            .collection("messages")
-            .doc(chatId)
-            .delete();
-      }
-    }
-  }
-
-  deleteChat(selectedUserList) async {
-    List<String> senderList = [];
-    List<String> msgList = [];
-
-    for (var chatId in selectedUserList) {
-      try {
-        final deleteChatSnap = await firestore
+    try {
+      for (var chatId in msgList) {
+        final deleteChat = await firestore
             .doc(currentUserId)
             .collection("save_chat")
             .doc(widget.userid)
             .collection("messages")
             .doc(chatId)
             .get();
-        if (deleteChatSnap.exists && deleteChatSnap.data() != null && deleteChatSnap.data()!.containsKey("sender")) {
-          String senderId = deleteChatSnap["sender"];
-          setState(() {
-            senderList.add(senderId);
-            msgList.add(chatId);
-          });
-        }
-      } on FirebaseException catch (e) {
-        if (mounted) {
-          showSnackBar(context, "$e");
+        var ext = deleteChat.data()?["extension"];
+        Directory filepath = Directory('/storage/emulated/0/Download/TriDot/Files/$chatId$ext');
+        File file = File(filepath.path);
+        if (ext != null && await file.exists()) {
+          await file.delete();
+          await firestore
+              .doc(currentUserId)
+              .collection("save_chat")
+              .doc(widget.userid)
+              .collection("messages")
+              .doc(chatId)
+              .delete();
+          mounted ? showSnackBar(context, "Deleted $chatId$ext") : null;
+        } else {
+          await firestore
+              .doc(currentUserId)
+              .collection("save_chat")
+              .doc(widget.userid)
+              .collection("messages")
+              .doc(chatId)
+              .delete();
         }
       }
+    } on FirebaseException catch (ex) {
+      showSnackBar(context, ex.toString());
     }
+  }
+
+  deleteChat() async {
+    List<String> senderList = selectedChatMap.values.toList();
+    List<String> msgList = selectedChatMap.keys.toList();
 
     if (senderList.contains(widget.userid)) {
       if (mounted) {
@@ -914,7 +897,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                               IconButton(
                                   tooltip: "Delete Selected Chats",
                                   onPressed: () {
-                                    deleteChat(selectedChatList);
+                                    deleteChat();
                                   },
                                   icon: Icon(
                                     Icons.remove_circle,
@@ -927,7 +910,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                         Expanded(
                           child: ListView.builder(
                             controller: _scrollController,
-                            physics: ScrollPhysics(parent: PageScrollPhysics()),
                             shrinkWrap: true,
                             itemCount: messageList.length,
                             itemBuilder: (context, index) {
@@ -939,13 +921,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                               final messageState = messageData["messagestate"];
                               final formatedTime = DateFormat("hh:mm a").format(timestamp.toDate());
                               final inkwell = GlobalKey();
+
                               if (selectedStates[index] == true) {
-                                if (!selectedChatList.contains(messageId)) {
-                                  selectedChatList.add(messageId);
+                                if (!selectedChatMap.containsKey(messageId)) {
+                                  selectedChatMap[messageId.toString()] = senderId.toString();
                                 }
                               } else if (selectedStates[index] == false) {
-                                if (selectedChatList.contains(messageId)) {
-                                  selectedChatList.remove(messageId);
+                                if (selectedChatMap.containsKey(messageId)) {
+                                  selectedChatMap.remove(messageId);
                                 }
                               }
 
@@ -1385,7 +1368,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                                               });
                                             }
                                           } catch (e) {
-
                                             showSnackBar(context, "$e");
                                           }
                                         },
@@ -1406,7 +1388,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver{
                                             });
                                           }
                                         } catch (e) {
-
                                           showSnackBar(context, "$e");
                                         }
                                       },
