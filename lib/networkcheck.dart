@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
 
 bool connectedToInternet = false;
 

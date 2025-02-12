@@ -2,8 +2,8 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/elvb.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/elvb.dart';
 
 import 'home.dart';
 

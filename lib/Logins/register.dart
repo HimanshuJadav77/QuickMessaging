@@ -6,12 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:TriDot/Logins/login.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Logins/verification.dart';
-import 'package:TriDot/Ui/elvb.dart';
-import 'package:TriDot/Ui/snackbar.dart';
-import 'package:TriDot/networkcheck.dart';
+import 'package:QuickMessenger/Logins/login.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Logins/verification.dart';
+import 'package:QuickMessenger/Ui/elvb.dart';
+import 'package:QuickMessenger/Ui/snackbar.dart';
+import 'package:QuickMessenger/networkcheck.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -71,10 +71,22 @@ class _RegisterState extends State<Register> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Verification(),
-              ));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => Verification(),
+              // The page to navigate to
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.1, 0.0);
+                const end = Offset.zero;
+                var tween = Tween(begin: begin, end: end);
+                final offsetAnimation = animation.drive(tween);
+                return SlideTransition(
+                  position: offsetAnimation,
+                  child: child,
+                );
+              },
+            ),
+          );
         }
       });
       setState(() {

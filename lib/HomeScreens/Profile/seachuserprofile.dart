@@ -6,10 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/Profile/followfollowing.dart';
-import 'package:TriDot/HomeScreens/chatscreen.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/snackbar.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/followfollowing.dart';
+import 'package:QuickMessenger/HomeScreens/chatscreen.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/snackbar.dart';
 
 import '../../Ui/elvb.dart';
 
@@ -321,9 +321,6 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
               .doc(currentUserId)
               .snapshots(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center();
-            }
             if (!snapshot.hasData || snapshot.data!.exists == false) {
               FirebaseFirestore.instance
                   .collection("block")
@@ -331,6 +328,7 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                   .collection("blockedid")
                   .doc(currentUserId)
                   .set({"blocked": false});
+              return CircularProgressIndicator();
             }
             if (snapshot.hasData) {
               final blockState = snapshot.data!["blocked"];
@@ -355,9 +353,6 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                         .doc("mode")
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center();
-                      }
                       if (!snapshot.hasData || snapshot.data!.exists == false) {
                         FirebaseFirestore.instance
                             .collection("Users")
@@ -365,7 +360,9 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                             .collection("privacy")
                             .doc("mode")
                             .set({"privacy": "public"});
-                        return Center();
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
                       }
 
                       final privacy = snapshot.data?["privacy"];
@@ -419,12 +416,25 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                       onTap: () {
                                         if (private && followState || public) {
                                           Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => FollowFollowingPage(
-                                                  userid: widget.userid,
-                                                ),
-                                              ));
+                                            context,
+                                            PageRouteBuilder(
+                                              pageBuilder: (context, animation, secondaryAnimation) =>
+                                                  FollowFollowingPage(
+                                                userid: widget.userid,
+                                              ),
+                                              // The page to navigate to
+                                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                const begin = Offset(2.0, 1.0);
+                                                const end = Offset.zero;
+                                                var tween = Tween(begin: begin, end: end);
+                                                final offsetAnimation = animation.drive(tween);
+                                                return SlideTransition(
+                                                  position: offsetAnimation,
+                                                  child: child,
+                                                );
+                                              },
+                                            ),
+                                          );
                                         }
                                       },
                                       child: SizedBox(
@@ -463,7 +473,13 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                                       .snapshots(),
                                                   builder: (context, snapshot) {
                                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center();
+                                                      return Padding(
+                                                        padding: const EdgeInsets.only(left: 70, top: 5),
+                                                        child: Text(
+                                                          "0",
+                                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                        ),
+                                                      );
                                                     }
                                                     if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
                                                       _firestore
@@ -472,7 +488,9 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                                           .collection("followers")
                                                           .doc(currentUserId)
                                                           .set({"follower": false});
-                                                      return Center();
+                                                      return Center(
+                                                        child: CircularProgressIndicator(),
+                                                      );
                                                     }
                                                     return Padding(
                                                       padding: const EdgeInsets.only(left: 70, top: 5),
@@ -495,7 +513,13 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                                       .snapshots(),
                                                   builder: (context, snapshot) {
                                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center();
+                                                      return Padding(
+                                                        padding: const EdgeInsets.only(left: 70, top: 5),
+                                                        child: Text(
+                                                          "0",
+                                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                                                        ),
+                                                      );
                                                     }
                                                     if (!snapshot.hasData && snapshot.data!.docs.isEmpty) {
                                                       _firestore
@@ -504,7 +528,9 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                                           .collection("following")
                                                           .doc(currentUserId)
                                                           .set({"following": false});
-                                                      return Center();
+                                                      return Center(
+                                                        child: CircularProgressIndicator(),
+                                                      );
                                                     }
                                                     return Padding(
                                                       padding: const EdgeInsets.only(left: 70, top: 5),
@@ -546,16 +572,29 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                             onPressed: () async {
                                               if (private && followState || public) {
                                                 Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => ChatScreen(
-                                                        imageurl: widget.imageurl,
-                                                        username: widget.username,
-                                                        userid: widget.userid,
-                                                        about: widget.about,
-                                                        email: widget.email,
-                                                      ),
-                                                    ));
+                                                  context,
+                                                  PageRouteBuilder(
+                                                    pageBuilder: (context, animation, secondaryAnimation) => ChatScreen(
+                                                      imageurl: widget.imageurl,
+                                                      username: widget.username,
+                                                      userid: widget.userid,
+                                                      about: widget.about,
+                                                      email: widget.email,
+                                                    ),
+                                                    // The page to navigate to
+                                                    transitionsBuilder:
+                                                        (context, animation, secondaryAnimation, child) {
+                                                      const begin = Offset(2.0, 1.0);
+                                                      const end = Offset.zero;
+                                                      var tween = Tween(begin: begin, end: end);
+                                                      final offsetAnimation = animation.drive(tween);
+                                                      return SlideTransition(
+                                                        position: offsetAnimation,
+                                                        child: child,
+                                                      );
+                                                    },
+                                                  ),
+                                                );
                                                 await _firestore
                                                     .collection("Users")
                                                     .doc(currentUserId)
@@ -647,9 +686,6 @@ class _SearchUserProfileState extends State<SearchUserProfile> {
                                     .doc(widget.userid)
                                     .snapshots(),
                                 builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return Center();
-                                  }
                                   if (!snapshot.hasData || snapshot.data!.exists == false) {
                                     _firestore
                                         .collection("Users")

@@ -11,15 +11,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
-import 'package:TriDot/HomeScreens/Profile/seachuserprofile.dart';
-import 'package:TriDot/HomeScreens/home.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/receivecard.dart';
-import 'package:TriDot/Ui/receivemedia.dart';
-import 'package:TriDot/Ui/sendmedia.dart';
-import 'package:TriDot/Ui/snackbar.dart';
-import 'package:TriDot/networkcheck.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:QuickMessenger/HomeScreens/home.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/receivecard.dart';
+import 'package:QuickMessenger/Ui/receivemedia.dart';
+import 'package:QuickMessenger/Ui/sendmedia.dart';
+import 'package:QuickMessenger/Ui/snackbar.dart';
+import 'package:QuickMessenger/networkcheck.dart';
 import '../Ui/sendcard.dart';
+import 'chatscreenmethod.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen(
@@ -72,63 +73,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Map<String, String> selectedChatMap = {};
   List<bool> selectedStates = [];
 
-  String getFileType(String? extension) {
-    if ([
-      '.mp3',
-      '.wav',
-      '.flac',
-      '.aac',
-      '.ogg',
-      '.m4a',
-      '.wma',
-      '.alac',
-      '.ape',
-      '.ac3',
-      '.opus',
-      '.aiff',
-      '.mid',
-      '.mka',
-      '.flv',
-      '.amr'
-    ].contains(extension)) {
-      return 'Audio';
-    } else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg', '.ico', '.webp', '.heif', '.heic', '.raw']
-        .contains(extension)) {
-      return 'Image';
-    } else if (['.pdf'].contains(extension)) {
-      return 'PDF Document';
-    } else if (['.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp', '.rtf', '.epub']
-        .contains(extension)) {
-      return 'Document';
-    } else if (['.zip', '.rar', '.tar', '.7z', '.gz', '.iso', '.tar.gz'].contains(extension)) {
-      return 'Compressed File';
-    } else if ([
-      '.mp4',
-      '.mkv',
-      '.avi',
-      '.mov',
-      '.wmv',
-      '.flv',
-      '.webm',
-      '.mpeg',
-      '.mpg',
-      '.3gp',
-      '.vob',
-      '.ogv',
-      '.rm',
-      '.ram',
-      '.m4v',
-      '.asf'
-    ].contains(extension)) {
-      return 'Video';
-    } else {
-      return 'Unknown Type';
-    }
-  }
-
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused) {
       await FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": false});
     } else if (state == AppLifecycleState.resumed) {
       await FirebaseFirestore.instance.collection("Users").doc(currentUserId).update({"online": true});
@@ -312,7 +259,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void sendFiles(List<PlatformFile> pickedFiles, sender, receiver) async {
     Directory savePath = Directory('/storage/emulated/0/Download');
-    Directory qmsg = Directory("${savePath.path}/TriDot");
+    Directory qmsg = Directory("${savePath.path}/QuickMessenger");
     if (!await qmsg.exists()) {
       qmsg.create(recursive: true);
     }
@@ -369,7 +316,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void sendImage(File? pickedimage, List<XFile?> pickedImages, sender, receiver) async {
     Directory savePath = Directory('/storage/emulated/0/Download');
-    Directory qmsg = Directory("${savePath.path}/TriDot");
+    Directory qmsg = Directory("${savePath.path}/QuickMessenger");
     if (!await qmsg.exists()) {
       qmsg.create(recursive: true);
     }
@@ -492,144 +439,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  void markMessageAsSeen(String messageId) async {
-    try {
-      var docSnap = await firestore
-          .doc(widget.userid)
-          .collection("save_chat")
-          .doc(userid)
-          .collection("messages")
-          .doc(messageId)
-          .get();
-      if (docSnap.exists) {
-        final messageData = docSnap.data();
-        String currentState = messageData?["messagestate"];
-        if (currentState != "seen") {
-          await firestore
-              .doc(widget.userid)
-              .collection("save_chat")
-              .doc(userid)
-              .collection("messages")
-              .doc(messageId)
-              .update({
-            "messagestate": "seen",
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) showSnackBar(context, "$e");
-    }
-  }
-
-  deleteUserChat(msgList) async {
-    try {
-      for (var chatId in msgList) {
-        final chat = await firestore
-            .doc(widget.userid)
-            .collection("save_chat")
-            .doc(currentUserId)
-            .collection("messages")
-            .doc(chatId)
-            .get();
-        if (chat.exists) {
-          await firestore
-              .doc(widget.userid)
-              .collection("save_chat")
-              .doc(currentUserId)
-              .collection("messages")
-              .doc(chatId)
-              .delete();
-        }
-      }
-    } on FirebaseException catch (ex) {
-      showSnackBar(context, ex.toString());
-    }
-  }
-
-  deleteOwnChat(msgList) async {
-    try {
-      for (var chatId in msgList) {
-        final deleteChat = await firestore
-            .doc(currentUserId)
-            .collection("save_chat")
-            .doc(widget.userid)
-            .collection("messages")
-            .doc(chatId)
-            .get();
-        var ext = deleteChat.data()?["extension"];
-        Directory filepath = Directory('/storage/emulated/0/Download/TriDot/Files/$chatId$ext');
-        File file = File(filepath.path);
-        if (ext != null && await file.exists()) {
-          await file.delete();
-          await firestore
-              .doc(currentUserId)
-              .collection("save_chat")
-              .doc(widget.userid)
-              .collection("messages")
-              .doc(chatId)
-              .delete();
-          mounted ? showSnackBar(context, "Deleted $chatId$ext") : null;
-        } else {
-          await firestore
-              .doc(currentUserId)
-              .collection("save_chat")
-              .doc(widget.userid)
-              .collection("messages")
-              .doc(chatId)
-              .delete();
-        }
-      }
-    } on FirebaseException catch (ex) {
-      showSnackBar(context, ex.toString());
-    }
-  }
-
-  deleteChat() async {
-    List<String> senderList = selectedChatMap.values.toList();
-    List<String> msgList = selectedChatMap.keys.toList();
-
-    if (senderList.contains(widget.userid)) {
-      if (mounted) {
-        showMessageBox(
-          "Deletion",
-          "Are you sure delete chats?",
-          context,
-          "Delete",
-          () {
-            deleteOwnChat(msgList);
-            Navigator.pop(context);
-          },
-        );
-      }
-    } else if (!senderList.contains(widget.userid)) {
-      if (mounted) {
-        showDeleteChatBox(
-          "Deletion",
-          "Are you sure to delete chats?",
-          context,
-          () {
-            deleteUserChat(msgList);
-            deleteOwnChat(msgList);
-            Navigator.pop(context);
-          },
-          () {
-            deleteOwnChat(msgList);
-            Navigator.pop(context);
-          },
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
         await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(),
-            ));
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.1, 0.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end);
+              final offsetAnimation = animation.drive(tween);
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          ),
+        );
         return super.mounted;
       },
       child: Scaffold(
@@ -645,8 +474,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => HomeScreen(),
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+                          // The page to navigate to
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(0.1, 0.0);
+                            const end = Offset.zero;
+                            var tween = Tween(begin: begin, end: end);
+                            final offsetAnimation = animation.drive(tween);
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
+                          },
                         ),
                       );
                     },
@@ -664,13 +504,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     data == "false"
                         ? Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => SearchUserProfile(
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
                                   username: widget.username,
                                   email: widget.email,
                                   about: widget.about,
                                   imageurl: widget.imageurl,
                                   userid: widget.userid),
+                              // The page to navigate to
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                const begin = Offset(2.0, 1.0);
+                                const end = Offset.zero;
+                                var tween = Tween(begin: begin, end: end);
+                                final offsetAnimation = animation.drive(tween);
+                                return SlideTransition(
+                                  position: offsetAnimation,
+                                  child: child,
+                                );
+                              },
                             ),
                           )
                         : showCustomDialog("", "${widget.username} has been blocked you.", context);
@@ -800,11 +651,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                       .doc(widget.userid)
                                       .snapshots(),
                                   builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
                                     if (snapshot.data?.exists == false) {
                                       FirebaseFirestore.instance
                                           .collection("block")
@@ -812,6 +658,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                           .collection("blockedid")
                                           .doc(widget.userid)
                                           .set({"blocked": false});
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
                                     }
                                     if (snapshot.hasData) {
                                       final data = snapshot.data;
@@ -844,7 +693,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       .orderBy("time")
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return Center(
                         child: Text("No Messages"),
                       );
@@ -897,7 +746,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               IconButton(
                                   tooltip: "Delete Selected Chats",
                                   onPressed: () {
-                                    deleteChat();
+                                    deleteChat(mounted, widget.userid, context, selectedChatMap);
                                   },
                                   icon: Icon(
                                     Icons.remove_circle,
@@ -938,7 +787,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
                                 final id = messageData.id;
                                 Directory filepath =
-                                    Directory('/storage/emulated/0/Download/TriDot/Files/$id$extension');
+                                    Directory('/storage/emulated/0/Download/QuickMessenger/Files/$id$extension');
 
                                 File image = File(filepath.path);
                                 return InkWell(
@@ -1016,13 +865,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                   ),
                                 );
                               } else if (txtMessage == widget.userid && senderId == widget.userid) {
-                                markMessageAsSeen(messageId);
+                                markMessageAsSeen(messageId, widget.userid, context);
                                 final fileType = messageData["filetype"];
                                 final extension = messageData["extension"];
                                 final fileUrl = messageData["fileurl"];
                                 final id = messageData.id;
                                 Directory filepath =
-                                    Directory('/storage/emulated/0/Download/TriDot/Files/$id$extension');
+                                    Directory('/storage/emulated/0/Download/QuickMessenger/Files/$id$extension');
                                 File file = File(filepath.path);
                                 return InkWell(
                                   key: inkwell,
@@ -1077,7 +926,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                   ),
                                 );
                               } else if (senderId == widget.userid && txtMessage != widget.userid) {
-                                markMessageAsSeen(messageData.id);
+                                markMessageAsSeen(messageData.id, widget.userid, context);
 
                                 return InkWell(
                                   onLongPress: () {

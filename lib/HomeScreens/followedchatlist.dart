@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/chatscreen.dart';
-import 'package:TriDot/HomeScreens/searchuser.dart';
-import 'package:TriDot/Ui/customcard.dart';
-import 'package:TriDot/Ui/elvb.dart';
+import 'package:QuickMessenger/HomeScreens/chatscreen.dart';
+import 'package:QuickMessenger/HomeScreens/searchuser.dart';
+import 'package:QuickMessenger/Ui/customcard.dart';
+import 'package:QuickMessenger/Ui/elvb.dart';
 
 import 'home.dart';
 
@@ -86,6 +86,7 @@ class _FollowedChatListState extends State<FollowedChatList> {
                             .doc(userData["userid"])
                             .set({"chat": true, "time": FieldValue.serverTimestamp()});
                         Navigator.push(
+                            // ignore: use_build_context_synchronously
                             context,
                             MaterialPageRoute(
                               builder: (context) => ChatScreen(

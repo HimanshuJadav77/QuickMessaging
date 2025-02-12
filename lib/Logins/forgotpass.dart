@@ -2,8 +2,8 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/snackbar.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/snackbar.dart';
 
 import '../Ui/elvb.dart';
 

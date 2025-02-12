@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/chatscreen.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/customcard.dart';
+import 'package:QuickMessenger/HomeScreens/chatscreen.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/customcard.dart';
 
 import 'home.dart';
 
@@ -19,7 +18,7 @@ class _ChatHomeState extends State<ChatHome> {
   List<bool> selectedStates = [];
   int indexSelected = 0;
   List<dynamic> selectedUserList = [];
-  var messageCount = 0;
+  var messageCount = [];
   final firestore = FirebaseFirestore.instance.collection("Users");
 
   final usersList = FirebaseFirestore.instance.collection("Users").doc(currentUserId).collection("chats");
@@ -50,6 +49,7 @@ class _ChatHomeState extends State<ChatHome> {
           }
         }
         selectedUserList.clear();
+        selectedStates.clear();
         Navigator.pop(context);
       },
     );
@@ -60,10 +60,6 @@ class _ChatHomeState extends State<ChatHome> {
     return StreamBuilder(
         stream: usersList.orderBy("time", descending: true).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.connectionState == ConnectionState.waiting) {
-            return Center();
-          }
-
           if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
             return Center(
               child: Text("No Users Available For Chat."),
@@ -92,7 +88,7 @@ class _ChatHomeState extends State<ChatHome> {
                   AnimatedContainer(
                     curve: Curves.linear,
                     height: selectedStates.contains(true) ? 50 : 0,
-                    duration: Duration(milliseconds: 300),
+                    duration: Duration(milliseconds: 200),
                     child: AppBar(
                       leading: IconButton(
                           tooltip: "Cancel",
@@ -131,7 +127,10 @@ class _ChatHomeState extends State<ChatHome> {
                       itemCount: users.length,
                       itemBuilder: (context, index) {
                         final DocumentSnapshot user = users[index];
-
+                        messageCount = List.generate(
+                          users.length,
+                          (index) {},
+                        );
                         if (selectedStates[index] == true) {
                           if (!selectedUserList.contains(user.id)) {
                             selectedUserList.add(user.id);
@@ -142,12 +141,11 @@ class _ChatHomeState extends State<ChatHome> {
                           }
                         }
 
-                        return FutureBuilder(
-                            future: FirebaseFirestore.instance.collection("Users").doc(user.id).get(),
+                        return StreamBuilder(
+                            stream: FirebaseFirestore.instance.collection("Users").doc(user.id).snapshots(),
                             builder: (context, snapshot) {
                               if (snapshot.hasData && snapshot.data != null) {
                                 final userData = snapshot.data!;
-
                                 return Column(
                                   children: [
                                     InkWell(
@@ -159,16 +157,28 @@ class _ChatHomeState extends State<ChatHome> {
                                         onTap: () {
                                           if (!selectedStates[index] && !selectedStates.contains(true)) {
                                             Navigator.pushReplacement(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => ChatScreen(
-                                                    imageurl: userData["userimageurl"],
-                                                    username: userData["username"],
-                                                    userid: userData["userid"],
-                                                    about: userData["about"],
-                                                    email: userData["email"],
-                                                  ),
-                                                ));
+                                              context,
+                                              PageRouteBuilder(
+                                                pageBuilder: (context, animation, secondaryAnimation) => ChatScreen(
+                                                  imageurl: userData["userimageurl"],
+                                                  username: userData["username"],
+                                                  userid: userData["userid"],
+                                                  about: userData["about"],
+                                                  email: userData["email"],
+                                                ),
+                                                // The page to navigate to
+                                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                                  const begin = Offset(2.0, 1.0);
+                                                  const end = Offset.zero;
+                                                  var tween = Tween(begin: begin, end: end);
+                                                  final offsetAnimation = animation.drive(tween);
+                                                  return SlideTransition(
+                                                    position: offsetAnimation,
+                                                    child: child,
+                                                  );
+                                                },
+                                              ),
+                                            );
                                           } else {
                                             setState(() {
                                               selectedStates[index] = !selectedStates[index];
@@ -193,16 +203,16 @@ class _ChatHomeState extends State<ChatHome> {
                                                   if (snapshot.connectionState == ConnectionState.waiting) {
                                                     return Center();
                                                   }
-                                                  if (snapshot.hasData) {
-                                                    final data = snapshot.data!.docs.toList();
 
-                                                    messageCount = data.where(
-                                                          (message) {
-                                                        return message["sender"] == userData["userid"] &&
-                                                            message["messagestate"] == "send";
-                                                      },
-                                                    ).length;
-                                                  }
+                                                  final data = snapshot.data!.docs.toList();
+
+                                                  messageCount[index] = data.where(
+                                                    (message) {
+                                                      return message["sender"] == userData["userid"] &&
+                                                          message["messagestate"] == "send";
+                                                    },
+                                                  ).length;
+
                                                   return SizedBox();
                                                 }),
                                             CustomCard(
@@ -228,11 +238,11 @@ class _ChatHomeState extends State<ChatHome> {
                                                       final message = data.last.data()["message"];
                                                       var senderId = data.last.data()["sender"];
 
-                                                      if (messageCount > 1) {
-                                                        return Text("$messageCount new messages");
-                                                      } else if (messageCount == 1) {
+                                                      if (messageCount[index] > 1) {
+                                                        return Text("${messageCount[index]} new messages");
+                                                      } else if (messageCount[index] == 1) {
                                                         return Text("1 new message");
-                                                      } else if (messageCount == 0) {
+                                                      } else if (messageCount[index] == 0) {
                                                         if (message == currentUserId || message == userData["userid"]) {
                                                           final filename = data.last.id + data.last.data()["extension"];
                                                           return Text(filename);

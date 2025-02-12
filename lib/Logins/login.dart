@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/home.dart';
-import 'package:TriDot/Logins/forgotpass.dart';
-import 'package:TriDot/Logins/register.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/networkcheck.dart';
+import 'package:QuickMessenger/HomeScreens/home.dart';
+import 'package:QuickMessenger/Logins/forgotpass.dart';
+import 'package:QuickMessenger/Logins/register.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/networkcheck.dart';
 import '../Ui/elvb.dart';
 import '../Ui/snackbar.dart';
 
@@ -42,11 +42,23 @@ class _LoginState extends State<Login> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       if (FirebaseAuth.instance.currentUser!.emailVerified) {
         Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ));
+          // ignore: use_build_context_synchronously
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+            // The page to navigate to
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.1, 0.0);
+              const end = Offset.zero;
+              var tween = Tween(begin: begin, end: end);
+              final offsetAnimation = animation.drive(tween);
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          ),
+        );
         setState(() {
           loggedin = false;
         });
@@ -136,10 +148,22 @@ class _LoginState extends State<Login> {
           GestureDetector(
             onTap: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Forgotpass(),
-                  ));
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => Forgotpass(),
+                  // The page to navigate to
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(3.0, 1.0);
+                    const end = Offset.zero;
+                    var tween = Tween(begin: begin, end: end);
+                    final offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+              );
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 275.0),

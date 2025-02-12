@@ -3,8 +3,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/Profile/myprofile.dart';
-import 'package:TriDot/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/myprofile.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/seachuserprofile.dart';
 
 class FollowFollowingPage extends StatefulWidget {
   const FollowFollowingPage({super.key, required this.userid});

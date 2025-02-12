@@ -2,8 +2,8 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/Profile/blockeduserlist.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/blockeduserlist.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
 
 import '../home.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:TriDot/Logins/register.dart';
-import 'package:TriDot/Logins/showdialogs.dart';
-import 'package:TriDot/Ui/elvb.dart';
-import 'package:TriDot/networkcheck.dart';
+import 'package:QuickMessenger/Logins/register.dart';
+import 'package:QuickMessenger/Logins/showdialogs.dart';
+import 'package:QuickMessenger/Ui/elvb.dart';
+import 'package:QuickMessenger/networkcheck.dart';
 import 'login.dart';
 
 class LogReg extends StatefulWidget {
@@ -14,10 +14,13 @@ class LogReg extends StatefulWidget {
 }
 
 class _LogRegState extends State<LogReg> {
+
+
   @override
   void initState() {
     super.initState();
     requestPermissions();
+
     NetworkCheck().initializeInternetStatus(context);
   }
 
@@ -71,7 +74,7 @@ class _LogRegState extends State<LogReg> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: const Text(
-                    "Tridot Messenger",
+                    "QuickMessenger",
                     style: TextStyle(fontSize: 25, color: Colors.white, fontFamily: "karsyu"),
                   ),
                 )
@@ -81,7 +84,7 @@ class _LogRegState extends State<LogReg> {
               padding: EdgeInsets.all(8.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "TriDot for Communicate with your friend and send messages to friends.",
+                "QuickMessenger for Communicate with your friend and send messages to friends.",
                 style: TextStyle(fontSize: 17, color: Colors.white),
               ),
             ),

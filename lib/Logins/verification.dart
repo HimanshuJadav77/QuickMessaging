@@ -3,8 +3,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/Logins/logreg.dart';
-import 'package:TriDot/Ui/elvb.dart';
+import 'package:QuickMessenger/Logins/logreg.dart';
+import 'package:QuickMessenger/Ui/elvb.dart';
 
 import '../HomeScreens/home.dart';
 
@@ -52,8 +52,19 @@ class _VerificationState extends State<Verification> {
       timer!.cancel();
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+          // The page to navigate to
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(2.0, 1.0);
+            const end = Offset.zero;
+            var tween = Tween(begin: begin, end: end);
+            final offsetAnimation = animation.drive(tween);
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
         ),
         (Route<dynamic> route) => false, // This removes all previous routes
       );
@@ -132,9 +143,21 @@ class _VerificationState extends State<Verification> {
                   _auth.currentUser!.delete();
                   Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const LogReg(),
-                      ));
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => LogReg(),
+                      // The page to navigate to
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(2.0, 1.0);
+                        const end = Offset.zero;
+                        var tween = Tween(begin: begin, end: end);
+                        final offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
                 },
                 child: const Text(
                   "Cancel",

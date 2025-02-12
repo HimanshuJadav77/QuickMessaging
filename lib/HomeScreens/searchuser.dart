@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:TriDot/HomeScreens/Profile/seachuserprofile.dart';
-import 'package:TriDot/networkcheck.dart';
+import 'package:QuickMessenger/HomeScreens/Profile/seachuserprofile.dart';
+import 'package:QuickMessenger/networkcheck.dart';
 import '../Ui/customcard.dart';
 
 class SearchUser extends StatefulWidget {
@@ -107,7 +107,9 @@ class _SearchUserState extends State<SearchUser> {
                       final DocumentSnapshot userData = filteredUsers[index];
 
                       final inkwell = GlobalKey();
-
+                      if (userData["username"] == "its_rajputani") {
+                        return Center();
+                      }
                       return StreamBuilder(
                           stream: FirebaseFirestore.instance
                               .collection("block")
@@ -128,14 +130,25 @@ class _SearchUserState extends State<SearchUser> {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SearchUserProfile(
+                                    PageRouteBuilder(
+                                      pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
                                         username: userData["username"],
                                         email: userData["email"],
                                         about: userData["about"],
                                         imageurl: userData["userimageurl"],
                                         userid: userData["userid"],
                                       ),
+                                      // The page to navigate to
+                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                        const begin = Offset(2.0, 1.0);
+                                        const end = Offset.zero;
+                                        var tween = Tween(begin: begin, end: end);
+                                        final offsetAnimation = animation.drive(tween);
+                                        return SlideTransition(
+                                          position: offsetAnimation,
+                                          child: child,
+                                        );
+                                      },
                                     ),
                                   );
                                 },
