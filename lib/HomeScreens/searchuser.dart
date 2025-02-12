@@ -107,9 +107,7 @@ class _SearchUserState extends State<SearchUser> {
                       final DocumentSnapshot userData = filteredUsers[index];
 
                       final inkwell = GlobalKey();
-                      if (userData["username"] == "its_rajputani") {
-                        return Center();
-                      }
+                    
                       return StreamBuilder(
                           stream: FirebaseFirestore.instance
                               .collection("block")
