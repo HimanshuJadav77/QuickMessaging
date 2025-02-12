@@ -668,7 +668,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
                                       return Text(
                                         block == "true" ? "Unblock" : 'Block',
-                                        style: TextStyle(color: Colors.red),
+                                        style: TextStyle(color: block == "true" ? Colors.blue : Colors.red),
                                       );
                                     }
                                     return Center();

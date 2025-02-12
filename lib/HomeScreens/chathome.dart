@@ -129,7 +129,9 @@ class _ChatHomeState extends State<ChatHome> {
                         final DocumentSnapshot user = users[index];
                         messageCount = List.generate(
                           users.length,
-                          (index) {},
+                          (index) {
+                            return 0;
+                          },
                         );
                         if (selectedStates[index] == true) {
                           if (!selectedUserList.contains(user.id)) {
@@ -226,10 +228,10 @@ class _ChatHomeState extends State<ChatHome> {
                                                       .orderBy("time")
                                                       .snapshots(),
                                                   builder: (context, snapshot) {
-                                                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
                                                       return Center();
                                                     }
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                                       return Center();
                                                     }
 
@@ -238,11 +240,7 @@ class _ChatHomeState extends State<ChatHome> {
                                                       final message = data.last.data()["message"];
                                                       var senderId = data.last.data()["sender"];
 
-                                                      if (messageCount[index] > 1) {
-                                                        return Text("${messageCount[index]} new messages");
-                                                      } else if (messageCount[index] == 1) {
-                                                        return Text("1 new message");
-                                                      } else if (messageCount[index] == 0) {
+                                                      if (messageCount[index] == 0) {
                                                         if (message == currentUserId || message == userData["userid"]) {
                                                           final filename = data.last.id + data.last.data()["extension"];
                                                           return Text(filename);
@@ -250,6 +248,10 @@ class _ChatHomeState extends State<ChatHome> {
                                                             senderId == userData["userid"]) {
                                                           return Text(message);
                                                         }
+                                                      } else if (messageCount[index] == 1) {
+                                                        return Text("1 new message");
+                                                      } else if (messageCount[index] > 1) {
+                                                        return Text("${messageCount[index]} new messages");
                                                       }
                                                     }
 
