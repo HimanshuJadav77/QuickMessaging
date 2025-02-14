@@ -99,20 +99,41 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                           onTap: () {
                             if (followerId == currentUserId) {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MyProfile(),
-                                  ));
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => MyProfile(),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(0.1, 0.0);
+                                    const end = Offset.zero;
+                                    var tween = Tween(begin: begin, end: end);
+                                    final offsetAnimation = animation.drive(tween);
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
                             } else {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => SearchUserProfile(
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
                                       username: username,
                                       email: email,
                                       about: about,
                                       imageurl: imageurl,
                                       userid: followerId),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(2.0, 1.0);
+                                    const end = Offset.zero;
+                                    var tween = Tween(begin: begin, end: end);
+                                    final offsetAnimation = animation.drive(tween);
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
                                 ),
                               );
                             }
@@ -185,20 +206,41 @@ class _FollowFollowingPageState extends State<FollowFollowingPage> {
                           onTap: () {
                             if (followingId == currentUserId) {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MyProfile(),
-                                  ));
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => MyProfile(),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(2.0, 1.0);
+                                    const end = Offset.zero;
+                                    var tween = Tween(begin: begin, end: end);
+                                    final offsetAnimation = animation.drive(tween);
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
                             } else {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => SearchUserProfile(
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
                                       username: username,
                                       email: email,
                                       about: about,
                                       imageurl: imageurl,
                                       userid: followingId),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(2.0, 1.0);
+                                    const end = Offset.zero;
+                                    var tween = Tween(begin: begin, end: end);
+                                    final offsetAnimation = animation.drive(tween);
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
                                 ),
                               );
                             }

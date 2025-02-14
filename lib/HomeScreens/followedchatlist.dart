@@ -54,10 +54,21 @@ class _FollowedChatListState extends State<FollowedChatList> {
                 Elvb(
                     onpressed: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SearchUser(),
-                          ));
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => SearchUser(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(2.0, 1.0);
+                            const end = Offset.zero;
+                            var tween = Tween(begin: begin, end: end);
+                            final offsetAnimation = animation.drive(tween);
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
                     },
                     name: "Search Users",
                     foregroundcolor: Colors.white,
@@ -86,17 +97,28 @@ class _FollowedChatListState extends State<FollowedChatList> {
                             .doc(userData["userid"])
                             .set({"chat": true, "time": FieldValue.serverTimestamp()});
                         Navigator.push(
-                            // ignore: use_build_context_synchronously
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                imageurl: userData["userimageurl"],
-                                username: userData["username"],
-                                userid: usersList[index].id,
-                                about: userData["about"],
-                                email: userData["email"],
-                              ),
-                            ));
+                          // ignore: use_build_context_synchronously
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => ChatScreen(
+                              imageurl: userData["userimageurl"],
+                              username: userData["username"],
+                              userid: usersList[index].id,
+                              about: userData["about"],
+                              email: userData["email"],
+                            ),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(2.0, 1.0);
+                              const end = Offset.zero;
+                              var tween = Tween(begin: begin, end: end);
+                              final offsetAnimation = animation.drive(tween);
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
                       },
                       child: CustomCard(
                         subtitle: null,

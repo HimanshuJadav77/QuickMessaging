@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           pageBuilder: (context, animation, secondaryAnimation) => LogReg(),
           // The page to navigate to
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(3.0, 1.0);
+            const begin = Offset(.0, 1.0);
             const end = Offset.zero;
             var tween = Tween(begin: begin, end: end);
             final offsetAnimation = animation.drive(tween);
@@ -110,7 +110,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             builder: (context, dsnapshot) {
               if (!dsnapshot.hasData || dsnapshot.data!.exists == false) {
                 FirebaseFirestore.instance.collection("disabled_account").doc(currentUserId).set({"disabled": false});
-                return CircularProgressIndicator();
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
               }
               final disable = dsnapshot.data!.data()!["disabled"];
               if (disable == true) {
@@ -120,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 disabled = false;
               }
 
-              return disable == true
+              return disabled == true
                   ? Scaffold(
                       body: Center(
                         child: Text("Your account has been disabled by the administrator."),
@@ -316,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   pageBuilder: (context, animation, secondaryAnimation) => SearchUser(),
                                   // The page to navigate to
                                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    const begin = Offset(3.0, 1.0);
+                                    const begin = Offset(2.0, 1.0);
                                     const end = Offset.zero;
                                     var tween = Tween(begin: begin, end: end);
                                     final offsetAnimation = animation.drive(tween);
@@ -439,7 +441,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               )),
                             ]),
                       ),
-                      body: TabBarView(children: [const ChatHome(), Updates()]),
+                      body: TabBarView(children: [ChatHome(), Updates()]),
                       floatingActionButton: FloatingActionButton(
                         elevation: 10,
                         splashColor: Colors.white60,
@@ -451,7 +453,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             context,
                             PageRouteBuilder(
                               pageBuilder: (context, animation, secondaryAnimation) => FollowedChatList(),
-                              // The page to navigate to
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                 const begin = Offset(3.0, 1.0);
                                 const end = Offset.zero;

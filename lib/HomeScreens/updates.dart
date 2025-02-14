@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:QuickMessenger/HomeScreens/Profile/seachuserprofile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:QuickMessenger/Logins/showdialogs.dart';
@@ -8,7 +9,8 @@ import 'package:QuickMessenger/Ui/elvb.dart';
 import 'home.dart';
 
 class Updates extends StatefulWidget {
-  const Updates({super.key});
+  const Updates({super.key,});
+
 
   @override
   State<Updates> createState() => _UpdatesState();
@@ -54,22 +56,48 @@ class _UpdatesState extends State<Updates> {
                             return Center();
                           }
                           final userData = uSnapshot.data;
-                          return ListTile(
-                              leading: ClipOval(
-                                child: CircleAvatar(
-                                  backgroundImage: NetworkImage(userData?["userimageurl"]),
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
+                                      username: userData?["username"],
+                                      email: userData?["email"],
+                                      about: userData?["about"],
+                                      imageurl: userData?["userimageurl"],
+                                      userid: userData?["userid"]),
+                                  // The page to navigate to
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const begin = Offset(2.0, 1.0);
+                                    const end = Offset.zero;
+                                    var tween = Tween(begin: begin, end: end);
+                                    final offsetAnimation = animation.drive(tween);
+                                    return SlideTransition(
+                                      position: offsetAnimation,
+                                      child: child,
+                                    );
+                                  },
                                 ),
-                              ),
-                              title: Text(
-                                "${userData?["username"]}",
-                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Text(
-                                "is started follow you.",
-                                style: TextStyle(
-                                  color: Colors.black,
+                              );
+                            },
+                            child: ListTile(
+                                leading: ClipOval(
+                                  child: CircleAvatar(
+                                    backgroundImage: NetworkImage(userData?["userimageurl"]),
+                                  ),
                                 ),
-                              ));
+                                title: Text(
+                                  "${userData?["username"]}",
+                                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  "is started follow you.",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                  ),
+                                )),
+                          );
                         },
                       );
                     },
@@ -188,7 +216,9 @@ class _UpdatesState extends State<Updates> {
                     },
                   );
                 } else {
-                  return Center(child: Text("No any other updates available"),);
+                  return Center(
+                    child: Text("No any other updates available"),
+                  );
                 }
               },
             ),

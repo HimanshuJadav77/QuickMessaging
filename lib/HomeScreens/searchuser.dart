@@ -107,9 +107,7 @@ class _SearchUserState extends State<SearchUser> {
                       final DocumentSnapshot userData = filteredUsers[index];
 
                       final inkwell = GlobalKey();
-                      if (userData["username"] == "its_rajputani") {
-                        return Center();
-                      }
+                  
                       return StreamBuilder(
                           stream: FirebaseFirestore.instance
                               .collection("block")
@@ -131,13 +129,14 @@ class _SearchUserState extends State<SearchUser> {
                                   Navigator.push(
                                     context,
                                     PageRouteBuilder(
-                                      pageBuilder: (context, animation, secondaryAnimation) => SearchUserProfile(
-                                        username: userData["username"],
-                                        email: userData["email"],
-                                        about: userData["about"],
-                                        imageurl: userData["userimageurl"],
-                                        userid: userData["userid"],
-                                      ),
+                                      pageBuilder: (context, animation, secondaryAnimation) =>
+                                          SearchUserProfile(
+                                            username: userData["username"],
+                                            email: userData["email"],
+                                            about: userData["about"],
+                                            imageurl: userData["userimageurl"],
+                                            userid: userData["userid"],
+                                          ),
                                       // The page to navigate to
                                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                         const begin = Offset(2.0, 1.0);
